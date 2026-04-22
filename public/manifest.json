@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Clio Notes",
+  "version": "1.0.0",
+  "description": "Display, edit, and organize Markdown files with a built-in folder explorer.",
+  "action": {
+    "default_title": "Open Clio Notes"
+  },
+  "chrome_url_overrides": {
+    "newtab": "app.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

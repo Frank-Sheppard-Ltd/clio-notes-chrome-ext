@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Clio Notes</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Clio Notes</h1>
+      <div class="actions">
+        <button id="settings-btn" class="button button-primary" type="button">Settings</button>
+        <button id="save-btn" class="button" disabled>Save (Ctrl/Cmd+S)</button>
+      </div>
+    </header>
+
+    <aside id="settings-panel" class="settings-panel" hidden>
+      <div class="settings-panel-head">
+        <strong>Settings</strong>
+        <button id="close-settings-btn" class="button button-quiet" type="button">Close</button>
+      </div>
+
+      <section class="settings-section">
+        <div class="settings-section-head">
+          <h2>Library</h2>
+          <button id="add-library-folder-btn" class="button button-quiet" type="button">Add Folder</button>
+        </div>
+        <p class="muted">Folders are persisted and can be reopened later.</p>
+        <ul id="library-list" class="library-list"></ul>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-section-head">
+          <h2>Chrome Homepage</h2>
+          <button id="apply-homepage-btn" class="button button-quiet" type="button">Apply</button>
+        </div>
+        <label class="settings-toggle" for="homepage-toggle">
+          <input id="homepage-toggle" type="checkbox" />
+          <span>Set Clio Notes as Chrome homepage/start page</span>
+        </label>
+        <p class="muted settings-help">Chrome requires confirmation. Apply opens startup settings and copies the Clio Notes URL.</p>
+        <p class="muted settings-url">Clio Notes URL: <span id="homepage-url"></span></p>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <aside class="explorer" aria-label="File and folder explorer">
+        <div class="explorer-head">
+          <div class="explorer-head-top">
+            <h2>Explorer</h2>
+          </div>
+          <span id="folder-name" class="folder-name">No folder selected</span>
+        </div>
+        <div id="tree-root" class="tree-root">
+          <p class="muted">Choose a folder to browse Markdown files.</p>
+        </div>
+      </aside>
+
+      <section class="editor-area" aria-label="Markdown editor and preview">
+        <div class="file-header">
+          <strong id="file-path">No file opened</strong>
+          <div class="file-header-actions">
+            <span id="status" class="status">Ready</span>
+            <button id="toggle-preview-btn" class="button button-quiet" type="button" aria-pressed="false">Hide Preview</button>
+          </div>
+        </div>
+
+        <div class="panes">
+          <label class="pane">
+            <span>Editor</span>
+            <textarea id="editor" spellcheck="false" placeholder="Open a Markdown file from the explorer..."></textarea>
+          </label>
+
+          <section class="pane preview-pane" aria-label="Markdown preview">
+            <span>Preview</span>
+            <article id="preview" class="preview-content"></article>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div id="context-menu" class="context-menu" hidden>
+      <button type="button" class="context-menu-item" data-action="new-file">New File</button>
+      <button type="button" class="context-menu-item" data-action="new-folder">New Folder</button>
+      <button type="button" class="context-menu-item" data-action="delete-file">Delete File</button>
+      <button type="button" class="context-menu-item" data-action="delete-folder">Delete Folder</button>
+      <button type="button" class="context-menu-item" data-action="set-front-page">Set as Front Page</button>
+      <button type="button" class="context-menu-item" data-action="restore-from-trash">Restore from Trash</button>
+    </div>
+
+    <script src="/src/main.js" type="module"></script>
+  </body>
+</html>
