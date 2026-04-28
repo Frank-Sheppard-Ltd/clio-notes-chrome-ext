@@ -62,14 +62,20 @@
           <strong id="file-path">No file opened</strong>
           <div class="file-header-actions">
             <span id="status" class="status">Ready</span>
+            <button id="insert-image-btn" class="button button-quiet" type="button" disabled title="Insert image into note (or drag &amp; drop an image onto the editor)">&#128247; Insert Image</button>
             <button id="toggle-preview-btn" class="button button-quiet" type="button" aria-pressed="false">Hide Preview</button>
           </div>
         </div>
 
         <div class="panes">
-          <label class="pane">
+          <label class="pane" id="editor-pane">
             <span>Editor</span>
-            <textarea id="editor" spellcheck="false" placeholder="Open a Markdown file from the explorer..."></textarea>
+            <div class="editor-drop-zone" id="editor-drop-zone">
+              <textarea id="editor" spellcheck="false" placeholder="Open a Markdown file from the explorer..."></textarea>
+              <div class="editor-drop-overlay" id="editor-drop-overlay" aria-hidden="true">
+                <span class="editor-drop-hint">&#128247; Drop image here</span>
+              </div>
+            </div>
           </label>
 
           <section class="pane preview-pane" aria-label="Markdown preview">
