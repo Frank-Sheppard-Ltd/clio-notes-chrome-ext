@@ -7,6 +7,7 @@ const homepageToggle = document.getElementById("homepage-toggle");
 const applyHomepageBtn = document.getElementById("apply-homepage-btn");
 const homepageUrlLabel = document.getElementById("homepage-url");
 const saveBtn = document.getElementById("save-btn");
+const insertImageBtn = document.getElementById("insert-image-btn");
 const explorer = document.querySelector(".explorer");
 const treeRoot = document.getElementById("tree-root");
 const folderName = document.getElementById("folder-name");
@@ -15,6 +16,7 @@ const filePathLabel = document.getElementById("file-path");
 const statusLabel = document.getElementById("status");
 const togglePreviewBtn = document.getElementById("toggle-preview-btn");
 const editor = document.getElementById("editor");
+const editorDropZone = document.getElementById("editor-drop-zone");
 const preview = document.getElementById("preview");
 const panes = document.querySelector(".panes");
 const contextMenu = document.getElementById("context-menu");
@@ -46,7 +48,8 @@ const state = {
   contextMenuTargetKind: "",
   contextMenuTargetPath: "",
   contextMenuParentPath: "",
-  frontPageByFolder: {}
+  frontPageByFolder: {},
+  imageCache: {}
 };
 
 settingsBtn.addEventListener("click", toggleSettingsPanel);
@@ -59,8 +62,13 @@ applyHomepageBtn.addEventListener("click", () => {
   void applyHomepageSetting();
 });
 saveBtn.addEventListener("click", saveCurrentFile);
+insertImageBtn.addEventListener("click", () => void onInsertImageClick());
 togglePreviewBtn.addEventListener("click", togglePreview);
 editor.addEventListener("input", () => renderPreview(editor.value));
+editorDropZone.addEventListener("dragover", onEditorDragOver);
+editorDropZone.addEventListener("dragleave", onEditorDragLeave);
+editorDropZone.addEventListener("drop", onEditorDrop);
+editor.addEventListener("paste", onEditorPaste);
 explorer.addEventListener("contextmenu", onExplorerContextMenu);
 explorerHead.addEventListener("click", () => {
   if (!state.rootHandle) {
@@ -825,8 +833,10 @@ async function openMarkdownFile(fileHandle, filePath, clickedButton) {
 
     filePathLabel.textContent = filePath;
     editor.value = text;
-    renderPreview(text);
+    insertImageBtn.disabled = false;
     saveBtn.disabled = false;
+    await updateImageBlobCache();
+    renderPreview(text);
     setStatus("File opened.");
   } catch (error) {
     console.error(error);
@@ -1273,8 +1283,10 @@ function clearCurrentSelection() {
   state.currentFilePath = "";
   filePathLabel.textContent = "No file opened";
   editor.value = "";
+  revokeImageCache();
   renderPreview("");
   saveBtn.disabled = true;
+  insertImageBtn.disabled = true;
 }
 
 function removeRootPrefix(fullPath) {
@@ -1702,10 +1714,227 @@ function markdownToHtml(markdownText) {
 
 function inlineMarkdown(text) {
   return text
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
+      const resolved = resolveImageUrl(url);
+      return `<img src="${resolved}" alt="${alt}" style="max-width:100%;height:auto;border-radius:0.5rem;display:block;margin:0.5em 0">`;
+    })
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
+function resolveImageUrl(url) {
+  if (/^\.\/images\/(.+)/.test(url)) {
+    const filename = url.slice("./images/".length);
+    if (state.imageCache[filename]) {
+      return state.imageCache[filename];
+    }
+  }
+  return url;
+}
+
+// ─── Image drag-and-drop on editor ───────────────────────────────────────────
+
+function isImageDrop(event) {
+  if (state.dragSourcePath) return false;
+  const types = Array.from(event.dataTransfer?.types || []);
+  if (!types.includes("Files")) return false;
+  const items = Array.from(event.dataTransfer?.items || []);
+  return items.some((item) => item.kind === "file" && item.type.startsWith("image/"));
+}
+
+function onEditorDragOver(event) {
+  if (!isImageDrop(event)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+  editorDropZone.classList.add("is-image-drop-active");
+}
+
+function onEditorDragLeave(event) {
+  if (!editorDropZone.contains(event.relatedTarget)) {
+    editorDropZone.classList.remove("is-image-drop-active");
+  }
+}
+
+async function onEditorDrop(event) {
+  editorDropZone.classList.remove("is-image-drop-active");
+  if (state.dragSourcePath) return;
+  const files = Array.from(event.dataTransfer?.files || []).filter((f) => f.type.startsWith("image/"));
+  if (!files.length) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!state.currentFileHandle) {
+    setStatus("Open a Markdown file before dropping images.");
+    return;
+  }
+
+  for (const file of files) {
+    await insertImageToNote(file);
+  }
+}
+
+async function onEditorPaste(event) {
+  const items = Array.from(event.clipboardData?.items || []);
+  const imageItems = items.filter((item) => item.kind === "file" && item.type.startsWith("image/"));
+  if (!imageItems.length) return;
+
+  // There are images in the clipboard — take over this paste event
+  event.preventDefault();
+
+  if (!state.currentFileHandle) {
+    setStatus("Open a Markdown file before pasting images.");
+    return;
+  }
+
+  for (const item of imageItems) {
+    const file = item.getAsFile();
+    if (file) {
+      await insertImageToNote(file);
+    }
+  }
+}
+
+// ─── Insert Image button ──────────────────────────────────────────────────────
+
+async function onInsertImageClick() {
+  if (!state.currentFileHandle) {
+    setStatus("Open a file first.");
+    return;
+  }
+
+  if (window.showOpenFilePicker) {
+    try {
+      const [fileHandle] = await window.showOpenFilePicker({
+        types: [
+          {
+            description: "Images",
+            accept: {
+              "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".bmp"]
+            }
+          }
+        ],
+        multiple: false
+      });
+      const file = await fileHandle.getFile();
+      await insertImageToNote(file);
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.error(error);
+      setStatus("Unable to insert image.");
+    }
+    return;
+  }
+
+  // Fallback: hidden file input
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.onchange = async () => {
+    if (!input.files?.length) return;
+    await insertImageToNote(input.files[0]);
+  };
+  input.click();
+}
+
+// ─── Core image insert logic ──────────────────────────────────────────────────
+
+async function insertImageToNote(file) {
+  try {
+    const imagesDir = await ensureImagesDirForCurrentFile();
+    const safeName = sanitizeFileName(file.name);
+    const uniqueName = await getUniqueEntryName(imagesDir, safeName);
+
+    // Write image to the images/ folder
+    const destHandle = await imagesDir.getFileHandle(uniqueName, { create: true });
+    const arrayBuffer = await file.arrayBuffer();
+    const writable = await destHandle.createWritable();
+    await writable.write(arrayBuffer);
+    await writable.close();
+
+    // Update blob cache so preview renders immediately
+    if (state.imageCache[uniqueName]) {
+      URL.revokeObjectURL(state.imageCache[uniqueName]);
+    }
+    const blob = new Blob([arrayBuffer], { type: file.type });
+    state.imageCache[uniqueName] = URL.createObjectURL(blob);
+
+    // Insert markdown at cursor position
+    const markdownRef = `./images/${uniqueName}`;
+    const insertion = `![${uniqueName}](${markdownRef})`;
+    insertAtCursor(editor, insertion);
+
+    // Trigger input event so preview re-renders
+    editor.dispatchEvent(new Event("input"));
+    setStatus(`Image inserted: ${uniqueName}`);
+  } catch (error) {
+    console.error(error);
+    setStatus("Unable to insert image.");
+  }
+}
+
+async function ensureImagesDirForCurrentFile() {
+  if (!state.currentFilePath || !state.rootHandle) {
+    throw new Error("No file is currently open.");
+  }
+
+  const relativePath = removeRootPrefix(state.currentFilePath);
+  const parentInfo = splitParentAndName(relativePath);
+  const parentDir = await getDirectoryHandleByRelativePath(parentInfo.parentPath);
+  return parentDir.getDirectoryHandle("images", { create: true });
+}
+
+function sanitizeFileName(name) {
+  // Keep extension, replace unsafe chars in base name
+  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+function insertAtCursor(textarea, text) {
+  const start = textarea.selectionStart ?? textarea.value.length;
+  const end = textarea.selectionEnd ?? textarea.value.length;
+  textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+  const newPos = start + text.length;
+  textarea.setSelectionRange(newPos, newPos);
+  textarea.focus();
+}
+
+// ─── Blob URL cache for preview ───────────────────────────────────────────────
+
+async function updateImageBlobCache() {
+  revokeImageCache();
+
+  if (!state.currentFilePath || !state.rootHandle) return;
+
+  try {
+    const relativePath = removeRootPrefix(state.currentFilePath);
+    const parentInfo = splitParentAndName(relativePath);
+    const parentDir = await getDirectoryHandleByRelativePath(parentInfo.parentPath);
+
+    let imagesDir;
+    try {
+      imagesDir = await parentDir.getDirectoryHandle("images");
+    } catch {
+      return; // no images folder yet — that's fine
+    }
+
+    for await (const [name, handle] of imagesDir.entries()) {
+      if (handle.kind !== "file") continue;
+      if (!/\.(png|jpe?g|gif|webp|svg|avif|bmp|ico)$/i.test(name)) continue;
+      const file = await handle.getFile();
+      state.imageCache[name] = URL.createObjectURL(file);
+    }
+  } catch (error) {
+    console.error("Failed to build image cache:", error);
+  }
+}
+
+function revokeImageCache() {
+  for (const url of Object.values(state.imageCache)) {
+    URL.revokeObjectURL(url);
+  }
+  state.imageCache = {};
 }
 
 function escapeHtml(text) {

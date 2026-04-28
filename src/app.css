@@ -542,6 +542,14 @@ details[open] > .folder-summary::before {
   color: var(--muted);
 }
 
+.editor-drop-zone {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 #editor,
 .preview-content {
   flex: 1;
@@ -565,6 +573,45 @@ details[open] > .folder-summary::before {
 #editor:focus {
   outline: 2px solid var(--outline);
   outline-offset: 1px;
+}
+
+.editor-drop-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 2.5px dashed var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  z-index: 5;
+}
+
+.editor-drop-zone.is-image-drop-active .editor-drop-overlay {
+  opacity: 1;
+}
+
+.editor-drop-hint {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--surface);
+  padding: 0.55rem 1.1rem;
+  border-radius: 0.7rem;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+  letter-spacing: 0.01em;
+}
+
+.preview-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  display: block;
+  margin: 0.5em 0;
 }
 
 .preview-content {
