@@ -68,6 +68,7 @@ editor.addEventListener("input", () => renderPreview(editor.value));
 editorDropZone.addEventListener("dragover", onEditorDragOver);
 editorDropZone.addEventListener("dragleave", onEditorDragLeave);
 editorDropZone.addEventListener("drop", onEditorDrop);
+editor.addEventListener("paste", onEditorPaste);
 explorer.addEventListener("contextmenu", onExplorerContextMenu);
 explorerHead.addEventListener("click", () => {
   if (!state.rootHandle) {
@@ -1772,6 +1773,27 @@ async function onEditorDrop(event) {
 
   for (const file of files) {
     await insertImageToNote(file);
+  }
+}
+
+async function onEditorPaste(event) {
+  const items = Array.from(event.clipboardData?.items || []);
+  const imageItems = items.filter((item) => item.kind === "file" && item.type.startsWith("image/"));
+  if (!imageItems.length) return;
+
+  // There are images in the clipboard — take over this paste event
+  event.preventDefault();
+
+  if (!state.currentFileHandle) {
+    setStatus("Open a Markdown file before pasting images.");
+    return;
+  }
+
+  for (const item of imageItems) {
+    const file = item.getAsFile();
+    if (file) {
+      await insertImageToNote(file);
+    }
   }
 }
 
