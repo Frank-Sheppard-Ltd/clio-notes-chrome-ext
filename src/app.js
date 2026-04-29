@@ -79,6 +79,7 @@ const themeDarkBtn = document.getElementById("theme-dark-btn");
 const themeSystemBtn = document.getElementById("theme-system-btn");
 const homepageUrlLabel = document.getElementById("homepage-url");
 const saveBtn = document.getElementById("toolbar-save-btn");
+const newFileBtn = document.getElementById("toolbar-new-file-btn");
 const insertImageBtn = document.getElementById("toolbar-insert-image-btn");
 const togglePreviewBtn = document.getElementById("toolbar-toggle-preview-btn");
 const boldBtn = document.getElementById("toolbar-bold-btn");
@@ -159,6 +160,7 @@ applyHomepageBtn.addEventListener("click", () => {
   void applyHomepageSetting();
 });
 saveBtn.addEventListener("click", saveCurrentFile);
+if (newFileBtn) newFileBtn.addEventListener("click", () => void createMarkdownFile());
 insertImageBtn.addEventListener("click", () => void onInsertImageClick());
 togglePreviewBtn.addEventListener("click", togglePreview);
 
@@ -702,6 +704,7 @@ async function removeLibraryFolder(folderId) {
     folderName.textContent = "No folder selected";
     treeRoot.innerHTML = '<p class="muted">Choose a folder from Settings > Library.</p>';
     updateExplorerActionButtons();
+    if (newFileBtn) newFileBtn.disabled = true;
   }
 
   renderLibraryList();
@@ -716,6 +719,7 @@ async function loadRootFolder(handle) {
   editor.value = "";
   renderPreview("");
   saveBtn.disabled = true;
+  if (newFileBtn) newFileBtn.disabled = false;
   folderName.textContent = handle.name;
   setExplorerSelection("root", handle.name, handle.name);
   await refreshTree();
