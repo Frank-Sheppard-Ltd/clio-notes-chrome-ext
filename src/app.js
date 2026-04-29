@@ -909,7 +909,13 @@ async function createMarkdownFile(destinationPathOverride) {
       return;
     }
 
-    await targetDir.getFileHandle(fileName, { create: true });
+    const fileHandle = await targetDir.getFileHandle(fileName, { create: true });
+
+    const writable = await fileHandle.createWritable();
+    const title = fileName.replace(/\.md$/i, "");
+    await writable.write(`# ${title}\n\n`);
+    await writable.close();
+
     await refreshTree();
     setStatus("Created " + fileName + " in " + formatRelativePath(destinationPath));
   } catch (error) {
