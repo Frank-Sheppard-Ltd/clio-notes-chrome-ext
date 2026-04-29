@@ -209,7 +209,19 @@
 
 /* Explorer Collapse */
 #main-content.explorer-collapsed {
-  grid-template-columns: 1fr !important;
+  grid-template-columns: 48px 1fr !important;
+}
+
+@media (max-width: 1024px) {
+  #main-content {
+    grid-template-columns: 1fr !important;
+  }
+  .activity-bar {
+    @apply flex-row h-12 w-full px-4 py-0 gap-4;
+  }
+  .activity-bar .flex-1 {
+    @apply flex-row;
+  }
 }
 
 #main-content.explorer-collapsed .explorer {

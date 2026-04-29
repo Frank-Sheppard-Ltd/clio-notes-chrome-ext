@@ -20,10 +20,6 @@
           <i data-lucide="save" class="w-4 h-4"></i>
           Save <span class="hidden sm:inline text-xs opacity-60 font-normal">(Ctrl/Cmd+S)</span>
         </button>
-        <button id="settings-btn" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-2" type="button">
-          <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
-          Settings
-        </button>
       </div>
     </header>
 
@@ -49,6 +45,21 @@
         <ul id="library-list" class="library-list"></ul>
       </section>
 
+      <section class="mb-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60">
+        <h2 class="text-sm font-bold mb-3">Appearance</h2>
+        <div class="flex items-center gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-lg">
+          <button id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all hover:bg-white dark:hover:bg-slate-700">
+            <i data-lucide="sun" class="w-3.5 h-3.5"></i> Light
+          </button>
+          <button id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all hover:bg-white dark:hover:bg-slate-700">
+            <i data-lucide="moon" class="w-3.5 h-3.5"></i> Dark
+          </button>
+          <button id="theme-system-btn" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all hover:bg-white dark:hover:bg-slate-700">
+            <i data-lucide="monitor" class="w-3.5 h-3.5"></i> System
+          </button>
+        </div>
+      </section>
+
       <section class="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-bold">Chrome Homepage</h2>
@@ -63,7 +74,22 @@
       </section>
     </aside>
 
-    <main id="main-content" class="grid grid-cols-1 lg:grid-cols-[320px_1fr] flex-1 min-h-0">
+    <main id="main-content" class="grid grid-cols-1 lg:grid-cols-[48px_320px_1fr] flex-1 min-h-0">
+      <nav class="activity-bar flex flex-col items-center py-4 bg-slate-100 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 shrink-0 z-30">
+        <div class="flex flex-col items-center gap-4 flex-1">
+          <button id="activity-explorer-btn" class="p-2 text-indigo-600 dark:text-indigo-400 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm" title="Explorer">
+            <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+          </button>
+          <button id="activity-search-btn" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-800" title="Search">
+            <i data-lucide="search" class="w-6 h-6"></i>
+          </button>
+        </div>
+        <div class="flex flex-col items-center">
+          <button id="settings-btn" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-800" title="Settings">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+          </button>
+        </div>
+      </nav>
       <aside class="explorer flex flex-col border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 backdrop-blur-sm lg:h-[calc(100vh-73px)] max-lg:max-h-[30vh] overflow-hidden" aria-label="File and folder explorer">
         <div class="explorer-head p-4 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
           <div class="flex items-center gap-2 mb-1">

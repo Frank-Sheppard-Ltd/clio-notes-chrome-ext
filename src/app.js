@@ -22,7 +22,11 @@ import {
   ShieldAlert, 
   RefreshCw, 
   Folder, 
-  File 
+  File,
+  Search,
+  Sun,
+  Moon,
+  Monitor
 } from 'lucide';
 
 const icons = {
@@ -48,7 +52,11 @@ const icons = {
   ShieldAlert,
   RefreshCw,
   Folder,
-  File
+  File,
+  Search,
+  Sun,
+  Moon,
+  Monitor
 };
 
 const settingsBtn = document.getElementById("settings-btn");
@@ -58,6 +66,9 @@ const addLibraryFolderBtn = document.getElementById("add-library-folder-btn");
 const libraryList = document.getElementById("library-list");
 const homepageToggle = document.getElementById("homepage-toggle");
 const applyHomepageBtn = document.getElementById("apply-homepage-btn");
+const themeLightBtn = document.getElementById("theme-light-btn");
+const themeDarkBtn = document.getElementById("theme-dark-btn");
+const themeSystemBtn = document.getElementById("theme-system-btn");
 const homepageUrlLabel = document.getElementById("homepage-url");
 const saveBtn = document.getElementById("save-btn");
 const insertImageBtn = document.getElementById("insert-image-btn");
@@ -76,6 +87,8 @@ const previewPane = document.querySelector(".preview-pane");
 const contextMenu = document.getElementById("context-menu");
 const contextMenuItems = Array.from(contextMenu.querySelectorAll(".context-menu-item"));
 const toggleExplorerBtn = document.getElementById("toggle-explorer-btn");
+const activityExplorerBtn = document.getElementById("activity-explorer-btn");
+const activitySearchBtn = document.getElementById("activity-search-btn");
 const mainContent = document.getElementById("main-content");
 const tabBar = document.getElementById("tab-bar");
 
@@ -90,6 +103,7 @@ const EXPANDED_FOLDERS_KEY = "clio-notes-expanded-folders";
 const EXPLORER_VISIBLE_KEY = "clio-notes-explorer-visible";
 const OPEN_TABS_KEY = "clio-notes-open-tabs";
 const ACTIVE_TAB_KEY = "clio-notes-active-tab";
+const THEME_KEY = "clio-notes-theme";
 
 const state = {
   libraryFolders: [],
@@ -114,7 +128,8 @@ const state = {
   expandedFolders: new Set(),
   explorerVisible: true,
   tabs: [],
-  activeTabId: null
+  activeTabId: null,
+  theme: "system"
 };
 
 settingsBtn.addEventListener("click", toggleSettingsPanel);
@@ -123,6 +138,13 @@ addLibraryFolderBtn.addEventListener("click", () => {
   void addFolderToLibrary();
 });
 homepageToggle.addEventListener("change", onHomepageToggleChange);
+
+if (themeLightBtn) themeLightBtn.addEventListener("click", () => setTheme("light"));
+if (themeDarkBtn) themeDarkBtn.addEventListener("click", () => setTheme("dark"));
+if (themeSystemBtn) themeSystemBtn.addEventListener("click", () => setTheme("system"));
+
+initializeTheme();
+
 applyHomepageBtn.addEventListener("click", () => {
   void applyHomepageSetting();
 });
@@ -131,6 +153,14 @@ insertImageBtn.addEventListener("click", () => void onInsertImageClick());
 togglePreviewBtn.addEventListener("click", togglePreview);
 if (toggleExplorerBtn) {
   toggleExplorerBtn.addEventListener("click", toggleExplorer);
+}
+if (activityExplorerBtn) {
+  activityExplorerBtn.addEventListener("click", toggleExplorer);
+}
+if (activitySearchBtn) {
+  activitySearchBtn.addEventListener("click", () => {
+    setStatus("Search functionality coming soon!");
+  });
 }
 editor.addEventListener("input", () => {
   renderPreview(editor.value);
@@ -425,6 +455,54 @@ function toggleSettingsPanel() {
 function setSettingsPanelOpen(isOpen) {
   state.settingsOpen = isOpen;
   settingsPanel.hidden = !isOpen;
+}
+
+function setTheme(theme) {
+  state.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme();
+}
+
+function applyTheme() {
+  const theme = state.theme === "system" 
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") 
+    : state.theme;
+  
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+  
+  updateThemeUI();
+}
+
+function updateThemeUI() {
+  const buttons = {
+    light: themeLightBtn,
+    dark: themeDarkBtn,
+    system: themeSystemBtn
+  };
+  
+  Object.entries(buttons).forEach(([key, btn]) => {
+    if (!btn) return;
+    if (state.theme === key) {
+      btn.classList.add("bg-white", "dark:bg-slate-700", "shadow-sm", "text-indigo-600", "dark:text-indigo-400");
+    } else {
+      btn.classList.remove("bg-white", "dark:bg-slate-700", "shadow-sm", "text-indigo-600", "dark:text-indigo-400");
+    }
+  });
+}
+
+function initializeTheme() {
+  state.theme = localStorage.getItem(THEME_KEY) || "system";
+  applyTheme();
+  
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (state.theme === "system") {
+      applyTheme();
+    }
+  });
 }
 
 async function initializeLibrary() {
@@ -726,6 +804,15 @@ function updateExplorerVisibility() {
     if (icon) {
       icon.setAttribute("data-lucide", state.explorerVisible ? "menu" : "layout-sidebar");
       createIcons({ icons, root: toggleExplorerBtn });
+    }
+  }
+  if (activityExplorerBtn) {
+    if (state.explorerVisible) {
+      activityExplorerBtn.classList.add("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
+      activityExplorerBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    } else {
+      activityExplorerBtn.classList.remove("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
+      activityExplorerBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
     }
   }
 }
