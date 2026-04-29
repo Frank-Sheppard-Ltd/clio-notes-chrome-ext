@@ -26,7 +26,11 @@ import {
   Search,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  Bold,
+  Italic,
+  Strikethrough,
+  Eye
 } from 'lucide';
 
 const icons = {
@@ -56,7 +60,11 @@ const icons = {
   Search,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  Bold,
+  Italic,
+  Strikethrough,
+  Eye
 };
 
 const settingsBtn = document.getElementById("settings-btn");
@@ -70,15 +78,18 @@ const themeLightBtn = document.getElementById("theme-light-btn");
 const themeDarkBtn = document.getElementById("theme-dark-btn");
 const themeSystemBtn = document.getElementById("theme-system-btn");
 const homepageUrlLabel = document.getElementById("homepage-url");
-const saveBtn = document.getElementById("save-btn");
-const insertImageBtn = document.getElementById("insert-image-btn");
+const saveBtn = document.getElementById("toolbar-save-btn");
+const insertImageBtn = document.getElementById("toolbar-insert-image-btn");
+const togglePreviewBtn = document.getElementById("toolbar-toggle-preview-btn");
+const boldBtn = document.getElementById("toolbar-bold-btn");
+const italicBtn = document.getElementById("toolbar-italic-btn");
+const strikethroughBtn = document.getElementById("toolbar-strikethrough-btn");
 const explorer = document.querySelector(".explorer");
 const treeRoot = document.getElementById("tree-root");
 const folderName = document.getElementById("folder-name");
 const explorerHead = document.querySelector(".explorer-head");
 const filePathLabel = document.getElementById("file-path");
 const statusLabel = document.getElementById("status");
-const togglePreviewBtn = document.getElementById("toggle-preview-btn");
 const editor = document.getElementById("editor");
 const editorDropZone = document.getElementById("editor-drop-zone");
 const preview = document.getElementById("preview");
@@ -86,7 +97,6 @@ const panes = document.querySelector(".panes");
 const previewPane = document.querySelector(".preview-pane");
 const contextMenu = document.getElementById("context-menu");
 const contextMenuItems = Array.from(contextMenu.querySelectorAll(".context-menu-item"));
-const toggleExplorerBtn = document.getElementById("toggle-explorer-btn");
 const activityExplorerBtn = document.getElementById("activity-explorer-btn");
 const activitySearchBtn = document.getElementById("activity-search-btn");
 const mainContent = document.getElementById("main-content");
@@ -151,9 +161,10 @@ applyHomepageBtn.addEventListener("click", () => {
 saveBtn.addEventListener("click", saveCurrentFile);
 insertImageBtn.addEventListener("click", () => void onInsertImageClick());
 togglePreviewBtn.addEventListener("click", togglePreview);
-if (toggleExplorerBtn) {
-  toggleExplorerBtn.addEventListener("click", toggleExplorer);
-}
+
+if (boldBtn) boldBtn.addEventListener("click", () => applyFormatting("**", "**"));
+if (italicBtn) italicBtn.addEventListener("click", () => applyFormatting("*", "*"));
+if (strikethroughBtn) strikethroughBtn.addEventListener("click", () => applyFormatting("~~", "~~"));
 if (activityExplorerBtn) {
   activityExplorerBtn.addEventListener("click", toggleExplorer);
 }
@@ -798,14 +809,6 @@ function updateExplorerVisibility() {
   if (mainContent) {
     mainContent.classList.toggle("explorer-collapsed", !state.explorerVisible);
   }
-  if (toggleExplorerBtn) {
-    toggleExplorerBtn.setAttribute("aria-expanded", String(state.explorerVisible));
-    const icon = toggleExplorerBtn.querySelector("i");
-    if (icon) {
-      icon.setAttribute("data-lucide", state.explorerVisible ? "menu" : "layout-sidebar");
-      createIcons({ icons, root: toggleExplorerBtn });
-    }
-  }
   if (activityExplorerBtn) {
     if (state.explorerVisible) {
       activityExplorerBtn.classList.add("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
@@ -1287,6 +1290,22 @@ async function saveCurrentFile() {
     console.error(error);
     setStatus("Save failed.");
   }
+}
+
+function applyFormatting(prefix, suffix) {
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const text = editor.value;
+  const selected = text.substring(start, end);
+  const before = text.substring(0, start);
+  const after = text.substring(end);
+
+  editor.value = before + prefix + selected + suffix + after;
+  editor.selectionStart = start + prefix.length;
+  editor.selectionEnd = start + prefix.length + selected.length;
+  editor.focus();
+  
+  editor.dispatchEvent(new Event('input'));
 }
 
 async function createMarkdownFile(destinationPathOverride) {
