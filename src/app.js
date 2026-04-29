@@ -1,3 +1,56 @@
+import { 
+  createIcons, 
+  BookOpen, 
+  Save, 
+  SlidersHorizontal, 
+  Settings, 
+  FolderPlus, 
+  X, 
+  LayoutDashboard, 
+  FolderSearch, 
+  FileText, 
+  ImagePlus, 
+  Columns, 
+  Image, 
+  FilePlus, 
+  Edit3, 
+  Trash2, 
+  Home, 
+  ArchiveRestore, 
+  Menu, 
+  Sidebar, 
+  ShieldAlert, 
+  RefreshCw, 
+  Folder, 
+  File 
+} from 'lucide';
+
+const icons = {
+  BookOpen,
+  Save,
+  SlidersHorizontal,
+  Settings,
+  FolderPlus,
+  X,
+  LayoutDashboard,
+  FolderSearch,
+  FileText,
+  ImagePlus,
+  Columns,
+  Image,
+  FilePlus,
+  Edit3,
+  Trash2,
+  Home,
+  ArchiveRestore,
+  Menu,
+  LayoutSidebar: Sidebar,
+  ShieldAlert,
+  RefreshCw,
+  Folder,
+  File
+};
+
 const settingsBtn = document.getElementById("settings-btn");
 const settingsPanel = document.getElementById("settings-panel");
 const closeSettingsBtn = document.getElementById("close-settings-btn");
@@ -19,8 +72,12 @@ const editor = document.getElementById("editor");
 const editorDropZone = document.getElementById("editor-drop-zone");
 const preview = document.getElementById("preview");
 const panes = document.querySelector(".panes");
+const previewPane = document.querySelector(".preview-pane");
 const contextMenu = document.getElementById("context-menu");
 const contextMenuItems = Array.from(contextMenu.querySelectorAll(".context-menu-item"));
+const toggleExplorerBtn = document.getElementById("toggle-explorer-btn");
+const mainContent = document.getElementById("main-content");
+const tabBar = document.getElementById("tab-bar");
 
 const LIBRARY_DB_NAME = "clio-notes-db";
 const LIBRARY_DB_VERSION = 1;
@@ -29,6 +86,10 @@ const ACTIVE_LIBRARY_KEY = "clio-notes-active-library-folder-id";
 const FRONT_PAGE_MAP_KEY = "clio-notes-front-page-by-folder";
 const TRASH_DIR_NAME = ".clio-trash";
 const HOMEPAGE_ENABLED_KEY = "clio-notes-homepage-enabled";
+const EXPANDED_FOLDERS_KEY = "clio-notes-expanded-folders";
+const EXPLORER_VISIBLE_KEY = "clio-notes-explorer-visible";
+const OPEN_TABS_KEY = "clio-notes-open-tabs";
+const ACTIVE_TAB_KEY = "clio-notes-active-tab";
 
 const state = {
   libraryFolders: [],
@@ -39,7 +100,7 @@ const state = {
   currentFileButton: null,
   dragSourcePath: "",
   dragSourceKind: "",
-  previewVisible: true,
+  previewVisible: false,
   explorerSelectionKind: "",
   explorerSelectionPath: "",
   explorerSelectionParentPath: "",
@@ -49,7 +110,11 @@ const state = {
   contextMenuTargetPath: "",
   contextMenuParentPath: "",
   frontPageByFolder: {},
-  imageCache: {}
+  imageCache: {},
+  expandedFolders: new Set(),
+  explorerVisible: true,
+  tabs: [],
+  activeTabId: null
 };
 
 settingsBtn.addEventListener("click", toggleSettingsPanel);
@@ -64,7 +129,17 @@ applyHomepageBtn.addEventListener("click", () => {
 saveBtn.addEventListener("click", saveCurrentFile);
 insertImageBtn.addEventListener("click", () => void onInsertImageClick());
 togglePreviewBtn.addEventListener("click", togglePreview);
-editor.addEventListener("input", () => renderPreview(editor.value));
+if (toggleExplorerBtn) {
+  toggleExplorerBtn.addEventListener("click", toggleExplorer);
+}
+editor.addEventListener("input", () => {
+  renderPreview(editor.value);
+  const activeTab = state.tabs.find(t => t.path === state.activeTabId);
+  if (activeTab && !activeTab.isDirty) {
+    activeTab.isDirty = true;
+    renderTabs();
+  }
+});
 editorDropZone.addEventListener("dragover", onEditorDragOver);
 editorDropZone.addEventListener("dragleave", onEditorDragLeave);
 editorDropZone.addEventListener("drop", onEditorDrop);
@@ -92,6 +167,12 @@ contextMenuItems.forEach((item) => {
 
 initializeHomepageSettings();
 void initializeLibrary();
+
+const savedExplorerVisible = localStorage.getItem(EXPLORER_VISIBLE_KEY);
+state.explorerVisible = savedExplorerVisible === null ? true : savedExplorerVisible === "true";
+updateExplorerVisibility();
+
+createIcons({ icons });
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
@@ -196,7 +277,7 @@ function onExplorerContextMenu(event) {
       return;
     }
 
-    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "delete-folder"]);
+    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "rename", "delete-folder"]);
     return;
   }
 
@@ -212,7 +293,7 @@ function onExplorerContextMenu(event) {
       return;
     }
 
-    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "delete-file", "set-front-page"]);
+    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "rename", "delete-file", "set-front-page"]);
     return;
   }
 
@@ -327,6 +408,11 @@ async function onContextMenuAction(action) {
     return;
   }
 
+  if (action === "rename" && (targetKind === "file" || targetKind === "folder")) {
+    await renameEntry(state.contextMenuTargetPath, targetKind);
+    return;
+  }
+
   if (action === "restore-from-trash" && (targetKind === "file" || targetKind === "folder")) {
     await restoreFromTrash(state.contextMenuTargetPath, targetKind);
   }
@@ -343,6 +429,14 @@ function setSettingsPanelOpen(isOpen) {
 
 async function initializeLibrary() {
   try {
+    const rawExpanded = localStorage.getItem(EXPANDED_FOLDERS_KEY);
+    if (rawExpanded) {
+      try {
+        state.expandedFolders = new Set(JSON.parse(rawExpanded));
+      } catch (e) {
+        state.expandedFolders = new Set();
+      }
+    }
     state.frontPageByFolder = loadFrontPageMap();
     state.libraryFolders = await getStoredLibraryFolders();
     renderLibraryList();
@@ -350,12 +444,10 @@ async function initializeLibrary() {
     const storedActiveId = localStorage.getItem(ACTIVE_LIBRARY_KEY) || "";
     const activeEntry = state.libraryFolders.find((entry) => entry.id === storedActiveId);
     if (activeEntry) {
-      const canOpen = await hasReadWritePermission(activeEntry.handle);
-      if (canOpen) {
-        state.activeLibraryFolderId = activeEntry.id;
-        await loadRootFolder(activeEntry.handle);
-        return;
-      }
+      state.activeLibraryFolderId = activeEntry.id;
+      // We still call loadRootFolder. It will handle permission check inside refreshTree.
+      await loadRootFolder(activeEntry.handle);
+      return;
     }
 
     setStatus("Open Settings > Library and add a folder to get started.");
@@ -602,64 +694,40 @@ async function deleteStoredLibraryFolder(folderId) {
   db.close();
 }
 
-function createBootstrapIconElement(iconName, className) {
-  const iconPaths = {
-    "file-earmark-plus": [
-      "M6.5 0A1.5 1.5 0 0 0 5 1.5V14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4.5L10.5 0zM10 1.5V4a1 1 0 0 0 1 1h2.5z",
-      "M8 6a.5.5 0 0 1 .5.5V8H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V9H6a.5.5 0 0 1 0-1h1.5V6.5A.5.5 0 0 1 8 6"
-    ],
-    "folder-plus": [
-      "M.5 3a2 2 0 0 1 2-2H5a2 2 0 0 1 1.414.586L7.414 2.586A2 2 0 0 0 8.828 3H13.5a2 2 0 0 1 2 2v1H.5z",
-      "M.5 5.5A1.5 1.5 0 0 1 2 4h12a1.5 1.5 0 0 1 1.493 1.356l-.727 6A1.5 1.5 0 0 1 13.274 13H2.726a1.5 1.5 0 0 1-1.492-1.644z",
-      "M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7"
-    ],
-    "file-earmark-x": [
-      "M6.5 0A1.5 1.5 0 0 0 5 1.5V14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4.5L10.5 0zM10 1.5V4a1 1 0 0 0 1 1h2.5z",
-      "M6.646 6.646a.5.5 0 0 1 .708 0L8 7.293l.646-.647a.5.5 0 1 1 .708.708L8.707 8l.647.646a.5.5 0 0 1-.708.708L8 8.707l-.646.647a.5.5 0 0 1-.708-.708L7.293 8l-.647-.646a.5.5 0 0 1 0-.708"
-    ],
-    "folder-x": [
-      "M.5 3a2 2 0 0 1 2-2H5a2 2 0 0 1 1.414.586L7.414 2.586A2 2 0 0 0 8.828 3H13.5a2 2 0 0 1 2 2v1H.5z",
-      "M.5 5.5A1.5 1.5 0 0 1 2 4h12a1.5 1.5 0 0 1 1.493 1.356l-.727 6A1.5 1.5 0 0 1 13.274 13H2.726a1.5 1.5 0 0 1-1.492-1.644z",
-      "M6.854 7.146a.5.5 0 0 0-.708.708L6.793 8.5l-.647.646a.5.5 0 0 0 .708.708L7.5 9.207l.646.647a.5.5 0 0 0 .708-.708L8.207 8.5l.647-.646a.5.5 0 0 0-.708-.708L7.5 7.793z"
-    ],
-    folder2: [
-      "M.5 3a2 2 0 0 1 2-2h2.586a1 1 0 0 1 .707.293L7.5 3H13.5a2 2 0 0 1 2 2v1h-15z",
-      "M0 5.5A1.5 1.5 0 0 1 1.5 4h13A1.5 1.5 0 0 1 16 5.5v6A1.5 1.5 0 0 1 14.5 13h-13A1.5 1.5 0 0 1 0 11.5z"
-    ],
-    "file-earmark-text": [
-      "M6.5 0A1.5 1.5 0 0 0 5 1.5V14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4.5L10.5 0zM10 1.5V4a1 1 0 0 0 1 1h2.5z",
-      "M6 8.5A.5.5 0 0 1 6.5 8h5a.5.5 0 0 1 0 1h-5A.5.5 0 0 1 6 8.5m0 2A.5.5 0 0 1 6.5 10h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5M6.5 6a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"
-    ]
-  };
-
-  const paths = iconPaths[iconName] || iconPaths["file-earmark-text"];
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 16 16");
-  svg.setAttribute("fill", "currentColor");
-  svg.setAttribute("aria-hidden", "true");
-  svg.classList.add("bi");
-  if (className) {
-    svg.classList.add(className);
-  }
-
-  for (const d of paths) {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", d);
-    svg.appendChild(path);
-  }
-
-  return svg;
-}
-
 function togglePreview() {
   state.previewVisible = !state.previewVisible;
   updatePreviewVisibility();
 }
 
 function updatePreviewVisibility() {
-  panes.classList.toggle("is-preview-hidden", !state.previewVisible);
-  togglePreviewBtn.textContent = state.previewVisible ? "Hide Preview" : "Show Preview";
+  if (previewPane) {
+    previewPane.classList.toggle("is-hidden", !state.previewVisible);
+  }
+  const labelSpan = togglePreviewBtn.querySelector("span");
+  if (labelSpan) {
+    labelSpan.textContent = state.previewVisible ? "Hide Preview" : "Show Preview";
+  }
   togglePreviewBtn.setAttribute("aria-pressed", String(!state.previewVisible));
+}
+
+function toggleExplorer() {
+  state.explorerVisible = !state.explorerVisible;
+  localStorage.setItem(EXPLORER_VISIBLE_KEY, String(state.explorerVisible));
+  updateExplorerVisibility();
+}
+
+function updateExplorerVisibility() {
+  if (mainContent) {
+    mainContent.classList.toggle("explorer-collapsed", !state.explorerVisible);
+  }
+  if (toggleExplorerBtn) {
+    toggleExplorerBtn.setAttribute("aria-expanded", String(state.explorerVisible));
+    const icon = toggleExplorerBtn.querySelector("i");
+    if (icon) {
+      icon.setAttribute("data-lucide", state.explorerVisible ? "menu" : "layout-sidebar");
+      createIcons({ icons, root: toggleExplorerBtn });
+    }
+  }
 }
 
 function setExplorerSelection(kind, fullPath, parentFullPath) {
@@ -704,7 +772,9 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     const label = document.createElement("span");
     label.className = "tree-label";
 
-    const folderIcon = createBootstrapIconElement("folder2", "item-icon");
+    const folderIcon = document.createElement("i");
+    folderIcon.setAttribute("data-lucide", "folder");
+    folderIcon.className = "item-icon text-amber-500 w-4 h-4";
 
     const folderNameText = document.createElement("span");
     folderNameText.className = "item-name";
@@ -732,6 +802,23 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     summary.appendChild(summaryRow);
 
     details.appendChild(summary);
+    
+    // Set initial open state
+    if (state.expandedFolders && state.expandedFolders.has(folderPath)) {
+      details.open = true;
+    }
+    
+    // Listen for toggle to save state
+    details.addEventListener("toggle", () => {
+      if (!state.expandedFolders) return;
+      if (details.open) {
+        state.expandedFolders.add(folderPath);
+      } else {
+        state.expandedFolders.delete(folderPath);
+      }
+      localStorage.setItem(EXPANDED_FOLDERS_KEY, JSON.stringify(Array.from(state.expandedFolders)));
+    });
+
     details.appendChild(await buildFolderTree(directory.handle, folderPath));
 
     item.appendChild(details);
@@ -753,7 +840,9 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     const fileLabel = document.createElement("span");
     fileLabel.className = "tree-label";
 
-    const fileIcon = createBootstrapIconElement("file-earmark-text", "item-icon");
+    const fileIcon = document.createElement("i");
+    fileIcon.setAttribute("data-lucide", "file-text");
+    fileIcon.className = "item-icon text-indigo-400 w-4 h-4";
 
     const fileNameText = document.createElement("span");
     fileNameText.className = "item-name";
@@ -801,8 +890,65 @@ async function refreshTree() {
 
   treeRoot.innerHTML = "";
   attachDropTarget(explorerHead, "");
-  const tree = await buildFolderTree(state.rootHandle, state.rootHandle.name);
-  treeRoot.appendChild(tree);
+
+  try {
+    const tree = await buildFolderTree(state.rootHandle, state.rootHandle.name);
+    treeRoot.appendChild(tree);
+    createIcons({ icons, root: treeRoot });
+    updateExplorerActionButtons();
+  } catch (error) {
+    console.error("Refresh tree error:", error);
+    
+    // If it's a security/permission error, show reconnect button
+    const container = document.createElement("div");
+    container.className = "flex flex-col items-center justify-center h-full text-center p-6 gap-4";
+    
+    const icon = document.createElement("i");
+    icon.setAttribute("data-lucide", "shield-alert");
+    icon.className = "w-12 h-12 text-amber-500 mb-2";
+    
+    const text = document.createElement("p");
+    text.className = "text-sm text-slate-600 dark:text-slate-400 font-medium";
+    text.textContent = "Access to this folder was lost. Chrome requires you to re-grant permission after a refresh.";
+    
+    const reconnectBtn = document.createElement("button");
+    reconnectBtn.className = "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm flex items-center gap-2";
+    reconnectBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Reconnect Library';
+    reconnectBtn.onclick = () => {
+      void reconnectActiveLibrary();
+    };
+    
+    container.appendChild(icon);
+    container.appendChild(text);
+    container.appendChild(reconnectBtn);
+    treeRoot.appendChild(container);
+    
+    createIcons({ icons, root: treeRoot });
+    setStatus("Permission required to access library.");
+  }
+}
+
+async function reconnectActiveLibrary() {
+  if (!state.rootHandle) {
+    setStatus("No folder to reconnect.");
+    return;
+  }
+
+  try {
+    const hasPermission = await ensureReadWritePermission(state.rootHandle);
+    if (hasPermission) {
+      setStatus("Permission re-granted. Refreshing explorer...");
+      // Add a tiny delay to ensure the browser has updated the handle state
+      await new Promise(r => setTimeout(r, 100));
+      await refreshTree();
+      await tryOpenFrontPageForActiveFolder();
+    } else {
+      setStatus("Permission was not granted.");
+    }
+  } catch (error) {
+    console.error("Reconnection error:", error);
+    setStatus("Failed to reconnect.");
+  }
 }
 
 async function openMarkdownFile(fileHandle, filePath, clickedButton) {
@@ -813,35 +959,172 @@ async function openMarkdownFile(fileHandle, filePath, clickedButton) {
       return;
     }
 
+    // If already open, just switch
+    const existingTab = state.tabs.find(t => t.path === filePath);
+    if (existingTab) {
+      switchTab(filePath);
+      return;
+    }
+
     const file = await fileHandle.getFile();
     const text = await file.text();
 
-    state.currentFileHandle = fileHandle;
-    state.currentFilePath = filePath;
+    const newTab = {
+      handle: fileHandle,
+      path: filePath,
+      content: text,
+      isDirty: false
+    };
 
-    if (state.currentFileButton) {
-      state.currentFileButton.classList.remove("is-active");
-    }
-
-    const targetButton = clickedButton || findFileButtonByPath(filePath);
-    if (targetButton) {
-      targetButton.classList.add("is-active");
-      state.currentFileButton = targetButton;
-    } else {
-      state.currentFileButton = null;
-    }
-
-    filePathLabel.textContent = filePath;
-    editor.value = text;
-    insertImageBtn.disabled = false;
-    saveBtn.disabled = false;
-    await updateImageBlobCache();
-    renderPreview(text);
-    setStatus("File opened.");
+    state.tabs.push(newTab);
+    state.activeTabId = filePath;
+    
+    updateEditorWithTabData(newTab);
+    renderTabs();
+    saveTabState();
+    setStatus("File opened in new tab.");
   } catch (error) {
     console.error(error);
     setStatus("Unable to open selected file.");
   }
+}
+
+function updateEditorWithTabData(tab) {
+  state.currentFileHandle = tab.handle;
+  state.currentFilePath = tab.path;
+  
+  if (state.currentFileButton) {
+    state.currentFileButton.classList.remove("is-active");
+  }
+  
+  const targetButton = findFileButtonByPath(tab.path);
+  if (targetButton) {
+    targetButton.classList.add("is-active");
+    state.currentFileButton = targetButton;
+  } else {
+    state.currentFileButton = null;
+  }
+
+  filePathLabel.textContent = tab.path;
+  editor.value = tab.content;
+  insertImageBtn.disabled = false;
+  saveBtn.disabled = false;
+  
+  void updateImageBlobCache();
+  renderPreview(tab.content);
+}
+
+function switchTab(tabId) {
+  if (state.activeTabId === tabId) return;
+
+  // Save current editor content to the outgoing tab
+  const outgoingTab = state.tabs.find(t => t.path === state.activeTabId);
+  if (outgoingTab) {
+    outgoingTab.content = editor.value;
+  }
+
+  const incomingTab = state.tabs.find(t => t.path === tabId);
+  if (!incomingTab) return;
+
+  state.activeTabId = tabId;
+  updateEditorWithTabData(incomingTab);
+  renderTabs();
+  saveTabState();
+}
+
+async function closeTab(tabId, event) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  const tabIndex = state.tabs.findIndex(t => t.path === tabId);
+  if (tabIndex === -1) return;
+
+  const tab = state.tabs[tabIndex];
+  if (tab.isDirty) {
+    if (!window.confirm(`File "${tab.path}" has unsaved changes. Close anyway?`)) {
+      return;
+    }
+  }
+
+  state.tabs.splice(tabIndex, 1);
+
+  if (state.tabs.length === 0) {
+    state.activeTabId = null;
+    clearEditor();
+  } else if (state.activeTabId === tabId) {
+    // Switch to adjacent tab
+    const nextTabIndex = Math.min(tabIndex, state.tabs.length - 1);
+    const nextTab = state.tabs[nextTabIndex];
+    state.activeTabId = nextTab.path;
+    updateEditorWithTabData(nextTab);
+  }
+
+  renderTabs();
+  saveTabState();
+}
+
+function renderTabs() {
+  if (!tabBar) return;
+
+  if (state.tabs.length === 0) {
+    tabBar.hidden = true;
+    return;
+  }
+
+  tabBar.hidden = false;
+  tabBar.innerHTML = "";
+
+  state.tabs.forEach(tab => {
+    const tabEl = document.createElement("div");
+    tabEl.className = "tab" + (state.activeTabId === tab.path ? " is-active" : "");
+    tabEl.dataset.path = tab.path;
+    
+    const info = splitParentAndName(removeRootPrefix(tab.path));
+    
+    const nameEl = document.createElement("span");
+    nameEl.textContent = info.name;
+    tabEl.appendChild(nameEl);
+
+    if (tab.isDirty) {
+      const dot = document.createElement("span");
+      dot.className = "tab-dirty-dot";
+      tabEl.appendChild(dot);
+    }
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "tab-close";
+    closeBtn.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+    closeBtn.addEventListener("click", (e) => void closeTab(tab.path, e));
+    tabEl.appendChild(closeBtn);
+
+    tabEl.addEventListener("click", () => switchTab(tab.path));
+    
+    tabBar.appendChild(tabEl);
+  });
+
+  createIcons({ icons, root: tabBar });
+}
+
+function saveTabState() {
+  const tabPaths = state.tabs.map(t => t.path);
+  localStorage.setItem(OPEN_TABS_KEY, JSON.stringify(tabPaths));
+  localStorage.setItem(ACTIVE_TAB_KEY, state.activeTabId || "");
+}
+
+function clearEditor() {
+  state.currentFileHandle = null;
+  state.currentFilePath = "";
+  if (state.currentFileButton) {
+    state.currentFileButton.classList.remove("is-active");
+  }
+  state.currentFileButton = null;
+  filePathLabel.textContent = "No file opened";
+  editor.value = "";
+  insertImageBtn.disabled = true;
+  saveBtn.disabled = true;
+  clearImageBlobCache();
+  renderPreview("");
 }
 
 async function ensureReadWritePermission(fileHandle) {
@@ -856,17 +1139,63 @@ async function ensureReadWritePermission(fileHandle) {
   return requested === "granted";
 }
 
+async function restoreTabs() {
+  const savedPaths = localStorage.getItem(OPEN_TABS_KEY);
+  const savedActiveId = localStorage.getItem(ACTIVE_TAB_KEY);
+  
+  if (!savedPaths) return;
+  
+  try {
+    const paths = JSON.parse(savedPaths);
+    for (const path of paths) {
+      try {
+        const relativePath = removeRootPrefix(path);
+        const info = splitParentAndName(relativePath);
+        const dirHandle = await getDirectoryHandleByRelativePath(info.parentPath);
+        const fileHandle = await dirHandle.getFileHandle(info.name);
+        
+        const file = await fileHandle.getFile();
+        const text = await file.text();
+        
+        state.tabs.push({
+          handle: fileHandle,
+          path: path,
+          content: text,
+          isDirty: false
+        });
+      } catch (err) {
+        console.warn(`Failed to restore tab for ${path}:`, err);
+      }
+    }
+    
+    if (state.tabs.length > 0) {
+      const activeTab = state.tabs.find(t => t.path === savedActiveId) || state.tabs[0];
+      state.activeTabId = activeTab.path;
+      updateEditorWithTabData(activeTab);
+      renderTabs();
+    }
+  } catch (err) {
+    console.error("Failed to parse saved tabs:", err);
+  }
+}
+
+
 async function saveCurrentFile() {
-  if (!state.currentFileHandle) {
+  const activeTab = state.tabs.find(t => t.path === state.activeTabId);
+  if (!activeTab) {
     setStatus("Open a file first.");
     return;
   }
-
   try {
-    const writable = await state.currentFileHandle.createWritable();
+    const writable = await activeTab.handle.createWritable();
     await writable.write(editor.value);
     await writable.close();
-    setStatus("Saved " + state.currentFilePath);
+    
+    activeTab.content = editor.value;
+    activeTab.isDirty = false;
+    renderTabs();
+    
+    setStatus("Saved " + activeTab.path);
   } catch (error) {
     console.error(error);
     setStatus("Save failed.");
@@ -967,6 +1296,131 @@ async function createFolder(destinationPathOverride) {
   }
 }
 
+async function renameEntry(sourcePath, kind) {
+  if (!state.rootHandle) {
+    setStatus("Open a folder first.");
+    return;
+  }
+
+  try {
+    const sourceRelative = removeRootPrefix(sourcePath);
+    const sourceInfo = splitParentAndName(sourceRelative);
+    
+    if (sourceRelative === TRASH_DIR_NAME) {
+      setStatus("Trash folder cannot be renamed.");
+      return;
+    }
+
+    const newNameInput = window.prompt("New name:", sourceInfo.name);
+    if (newNameInput === null) {
+      setStatus("Rename canceled.");
+      return;
+    }
+
+    const trimmed = newNameInput.trim();
+    if (!trimmed) {
+      setStatus("Name cannot be empty.");
+      return;
+    }
+
+    if (trimmed === sourceInfo.name) {
+      return; // No change
+    }
+
+    if (trimmed.includes("/")) {
+      setStatus("Name cannot contain '/'.");
+      return;
+    }
+
+    const parentHandle = await getDirectoryHandleByRelativePath(sourceInfo.parentPath);
+    const alreadyExistsFile = await fileExistsInDirectory(parentHandle, trimmed);
+    const alreadyExistsDir = await directoryExistsInDirectory(parentHandle, trimmed);
+    if (alreadyExistsFile || alreadyExistsDir) {
+      setStatus("An item named " + trimmed + " already exists.");
+      return;
+    }
+
+    if (kind === "file") {
+      const sourceFileHandle = await parentHandle.getFileHandle(sourceInfo.name);
+      await copyFileToDirectory(sourceFileHandle, parentHandle, trimmed);
+      await parentHandle.removeEntry(sourceInfo.name);
+      
+      const newRelativePath = sourceInfo.parentPath ? sourceInfo.parentPath + "/" + trimmed : trimmed;
+      const newFullPath = state.rootHandle.name + "/" + newRelativePath;
+      const newFileHandle = await getFileHandleByRelativePath(newRelativePath);
+
+      // Update tabs if file is open
+      state.tabs.forEach(tab => {
+        if (tab.path === sourcePath) {
+          tab.path = newFullPath;
+          tab.handle = newFileHandle;
+          if (state.activeTabId === sourcePath) {
+            state.activeTabId = newFullPath;
+            state.currentFilePath = newFullPath;
+            state.currentFileHandle = newFileHandle;
+            filePathLabel.textContent = newFullPath;
+          }
+        }
+      });
+
+      if (state.activeLibraryFolderId && (getFrontPageMap()[state.activeLibraryFolderId] || "") === sourceRelative) {
+        state.frontPageByFolder[state.activeLibraryFolderId] = newRelativePath;
+        saveFrontPageMap();
+      }
+    } else {
+      const sourceDirHandle = await parentHandle.getDirectoryHandle(sourceInfo.name);
+      const targetDir = await parentHandle.getDirectoryHandle(trimmed, { create: true });
+      await copyDirectoryContents(sourceDirHandle, targetDir);
+      await parentHandle.removeEntry(sourceInfo.name, { recursive: true });
+
+      // Update tabs for any file inside this folder
+      for (const tab of state.tabs) {
+        const tabRelativePath = removeRootPrefix(tab.path);
+        if (tabRelativePath === sourceRelative || tabRelativePath.startsWith(sourceRelative + "/")) {
+          let newRelativePath;
+          if (tabRelativePath === sourceRelative) {
+             newRelativePath = (sourceInfo.parentPath ? sourceInfo.parentPath + "/" : "") + trimmed;
+          } else {
+             const subPath = tabRelativePath.slice(sourceRelative.length);
+             newRelativePath = (sourceInfo.parentPath ? sourceInfo.parentPath + "/" : "") + trimmed + subPath;
+          }
+          
+          const newFullPath = state.rootHandle.name + "/" + newRelativePath;
+          const oldPath = tab.path;
+          
+          tab.path = newFullPath;
+          tab.handle = await getFileHandleByRelativePath(newRelativePath);
+          
+          if (state.activeTabId === oldPath) {
+            state.activeTabId = newFullPath;
+            state.currentFilePath = newFullPath;
+            state.currentFileHandle = tab.handle;
+            filePathLabel.textContent = newFullPath;
+          }
+        }
+      }
+
+      if (state.activeLibraryFolderId) {
+        const frontPagePath = state.frontPageByFolder[state.activeLibraryFolderId] || "";
+        if (frontPagePath === sourceRelative || frontPagePath.startsWith(sourceRelative + "/")) {
+          const destinationRoot = (sourceInfo.parentPath ? sourceInfo.parentPath + "/" : "") + trimmed;
+          const suffix = frontPagePath.slice(sourceRelative.length);
+          state.frontPageByFolder[state.activeLibraryFolderId] = destinationRoot + suffix;
+          saveFrontPageMap();
+        }
+      }
+    }
+
+    await refreshTree();
+    renderTabs();
+    saveTabState();
+    setStatus("Renamed to " + trimmed);
+  } catch (error) {
+    console.error(error);
+    setStatus("Unable to rename.");
+  }
+}
+
 async function deleteFile(sourcePath) {
   if (!state.rootHandle) {
     setStatus("Open a folder first.");
@@ -990,12 +1444,15 @@ async function deleteFile(sourcePath) {
       }
     }
 
-    if (state.currentFilePath === sourcePath) {
-      clearCurrentSelection();
+    // Close tab if deleted file was open
+    if (state.tabs.some(t => t.path === sourcePath)) {
+      await closeTab(sourcePath);
     }
 
     setExplorerSelection("root", state.rootHandle.name, state.rootHandle.name);
     await refreshTree();
+    renderTabs();
+    saveTabState();
     setStatus("Moved file to Trash: " + movedName);
   } catch (error) {
     console.error(error);
@@ -1029,13 +1486,21 @@ async function deleteFolder(sourcePath) {
         clearFrontPageForActiveFolder();
       }
     }
+    
+    // Close any tabs for files inside this folder
+    const tabsToClose = state.tabs.filter(t => {
+      const tabRelative = removeRootPrefix(t.path);
+      return tabRelative === sourceRelative || tabRelative.startsWith(sourceRelative + "/");
+    }).map(t => t.path);
 
-    if (state.currentFilePath && removeRootPrefix(state.currentFilePath).startsWith(sourceRelative + "/")) {
-      clearCurrentSelection();
+    for (const path of tabsToClose) {
+      await closeTab(path);
     }
 
     setExplorerSelection("root", state.rootHandle.name, state.rootHandle.name);
     await refreshTree();
+    renderTabs();
+    saveTabState();
     setStatus("Moved folder to Trash: " + movedName);
   } catch (error) {
     console.error(error);
@@ -1075,18 +1540,36 @@ async function moveFile(sourcePath, destinationPath) {
     await copyFileToDirectory(sourceFileHandle, destinationHandle, sourceInfo.name);
     await sourceParentHandle.removeEntry(sourceInfo.name);
 
+    const newRelativePath = destinationPath ? destinationPath + "/" + sourceInfo.name : sourceInfo.name;
+    const newFullPath = state.rootHandle.name + "/" + newRelativePath;
+    const newFileHandle = await getFileHandleByRelativePath(newRelativePath);
+
+    // Update tab if file is open
+    state.tabs.forEach(tab => {
+      if (tab.path === sourcePath) {
+        tab.path = newFullPath;
+        tab.handle = newFileHandle;
+        if (state.activeTabId === sourcePath) {
+          state.activeTabId = newFullPath;
+          state.currentFilePath = newFullPath;
+          state.currentFileHandle = newFileHandle;
+          filePathLabel.textContent = newFullPath;
+        }
+      }
+    });
+
     if (state.activeLibraryFolderId) {
       const frontPagePath = state.frontPageByFolder[state.activeLibraryFolderId] || "";
       if (frontPagePath === sourceRelative) {
-        const movedPath = destinationPath ? destinationPath + "/" + sourceInfo.name : sourceInfo.name;
-        state.frontPageByFolder[state.activeLibraryFolderId] = movedPath;
+        state.frontPageByFolder[state.activeLibraryFolderId] = newRelativePath;
         saveFrontPageMap();
       }
     }
 
-    clearCurrentSelection();
     setExplorerSelection("root", state.rootHandle.name, state.rootHandle.name);
     await refreshTree();
+    renderTabs();
+    saveTabState();
     setStatus("Moved file to " + formatRelativePath(destinationPath));
   } catch (error) {
     console.error(error);
