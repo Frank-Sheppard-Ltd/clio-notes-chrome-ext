@@ -1626,6 +1626,8 @@ async function createMarkdownFile(destinationPathOverride) {
 
     await refreshTree();
     setStatus("Created " + fileName + " in " + formatRelativePath(destinationPath));
+    const fullPath = destinationPath ? destinationPath + "/" + fileName : fileName;
+    await openMarkdownFile(fileHandle, fullPath);
   } catch (error) {
     console.error(error);
     setStatus("Unable to create file.");
