@@ -156,7 +156,7 @@
           </button>
         </div>
       </nav>
-      <aside class="explorer flex flex-col border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 backdrop-blur-sm lg:h-[calc(100vh-73px)] max-lg:max-h-[30vh] overflow-hidden" aria-label="File and folder explorer">
+      <aside id="explorer-sidebar" class="explorer flex flex-col border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 backdrop-blur-sm lg:h-[calc(100vh-73px)] max-lg:max-h-[30vh] overflow-hidden" aria-label="File and folder explorer">
         <div class="explorer-head p-4 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
           <div class="flex items-center gap-2 mb-1">
             <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-400"></i>
@@ -169,6 +169,25 @@
             <i data-lucide="folder-search" class="w-10 h-10 text-slate-300 dark:text-slate-600"></i>
             <span>Choose a folder to browse Markdown files.</span>
           </p>
+        </div>
+      </aside>
+
+      <aside id="search-sidebar" class="search-sidebar flex flex-col border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 backdrop-blur-sm lg:h-[calc(100vh-73px)] max-lg:max-h-[30vh] overflow-hidden" hidden aria-label="Global search">
+        <div class="p-4 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+            <h2 class="text-sm font-bold m-0 tracking-wide text-slate-700 dark:text-slate-300">Search</h2>
+          </div>
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input id="global-search-input" type="text" placeholder="Search notes..." class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+          </div>
+        </div>
+        <div id="search-results" class="overflow-auto p-2 flex-1 custom-scrollbar">
+          <div class="flex flex-col items-center justify-center h-full text-center gap-3 text-slate-400 p-4">
+            <i data-lucide="search" class="w-10 h-10 opacity-20"></i>
+            <p class="text-xs">Search across all your library folders for filenames and content.</p>
+          </div>
         </div>
       </aside>
 

@@ -151,6 +151,10 @@ const privacyAuthForm = document.getElementById("privacy-auth-form");
 const privacyAuthInput = document.getElementById("privacy-auth-input");
 const privacyAuthError = document.getElementById("privacy-auth-error");
 const privacyAuthCancel = document.getElementById("privacy-auth-cancel");
+const explorerSidebar = document.getElementById("explorer-sidebar");
+const searchSidebar = document.getElementById("search-sidebar");
+const globalSearchInput = document.getElementById("global-search-input");
+const searchResultsContainer = document.getElementById("search-results");
 
 const LIBRARY_DB_NAME = "clio-notes-db";
 const LIBRARY_DB_VERSION = 1;
@@ -218,6 +222,131 @@ addLibraryFolderBtn.addEventListener("click", () => {
 });
 
 void initializePrivacyScreen();
+
+// ─── Sidebar Switching ───────────────────────────────────────────────────────
+
+function setSidebar(tab) {
+  if (tab === "explorer") {
+    explorerSidebar.hidden = false;
+    searchSidebar.hidden = true;
+    activityExplorerBtn.classList.add("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activityExplorerBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    activitySearchBtn.classList.remove("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activitySearchBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+  } else {
+    explorerSidebar.hidden = true;
+    searchSidebar.hidden = false;
+    activitySearchBtn.classList.add("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activitySearchBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    activityExplorerBtn.classList.remove("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activityExplorerBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    globalSearchInput.focus();
+  }
+}
+
+activityExplorerBtn.addEventListener("click", () => setSidebar("explorer"));
+activitySearchBtn.addEventListener("click", () => setSidebar("search"));
+
+// ─── Global Search ───────────────────────────────────────────────────────────
+
+let searchDebounceTimer;
+globalSearchInput.addEventListener("input", (e) => {
+  clearTimeout(searchDebounceTimer);
+  const query = e.target.value.trim().toLowerCase();
+  if (!query) {
+    searchResultsContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center gap-3 text-slate-400 p-4"><i data-lucide="search" class="w-10 h-10 opacity-20"></i><p class="text-xs">Search across all your library folders for filenames and content.</p></div>`;
+    createIcons({ icons, root: searchResultsContainer });
+    return;
+  }
+  searchDebounceTimer = setTimeout(() => performGlobalSearch(query), 300);
+});
+
+async function performGlobalSearch(query) {
+  searchResultsContainer.innerHTML = `<div class="flex items-center justify-center p-8"><div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+  
+  const results = [];
+  
+  for (const lib of state.libraryFolders) {
+    await searchFolderRecursively(lib.handle, lib.name, query, results);
+  }
+  
+  renderSearchResults(results, query);
+}
+
+async function searchFolderRecursively(handle, path, query, results) {
+  for await (const entry of handle.values()) {
+    const currentPath = `${path}/${entry.name}`;
+    if (entry.kind === "directory") {
+      await searchFolderRecursively(entry, currentPath, query, results);
+    } else if (entry.name.toLowerCase().endsWith(".md")) {
+      const isNameMatch = entry.name.toLowerCase().includes(query);
+      let contentMatch = null;
+      
+      try {
+        const file = await entry.getFile();
+        const content = await file.text();
+        const lowerContent = content.toLowerCase();
+        const index = lowerContent.indexOf(query);
+        
+        if (index !== -1) {
+          const start = Math.max(0, index - 40);
+          const end = Math.min(content.length, index + query.length + 40);
+          contentMatch = (start > 0 ? "..." : "") + content.slice(start, end).replace(/\n/g, " ") + (end < content.length ? "..." : "");
+        }
+      } catch (err) {
+        console.error(`Error reading ${currentPath}:`, err);
+      }
+      
+      if (isNameMatch || contentMatch) {
+        results.push({
+          name: entry.name,
+          path: currentPath,
+          handle: entry,
+          contentMatch
+        });
+      }
+    }
+  }
+}
+
+function renderSearchResults(results, query) {
+  if (results.length === 0) {
+    searchResultsContainer.innerHTML = `<div class="p-8 text-center"><p class="text-sm text-slate-500">No results found for "${query}"</p></div>`;
+    return;
+  }
+  
+  searchResultsContainer.innerHTML = "";
+  results.forEach(result => {
+    const item = document.createElement("div");
+    item.className = "p-3 mb-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl hover:border-indigo-500/50 transition-all cursor-pointer group";
+    
+    const highlight = (text, q) => {
+      if (!text) return "";
+      const regex = new RegExp(`(${q})`, "gi");
+      return text.replace(regex, '<mark class="bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded px-0.5">$1</mark>');
+    };
+
+    item.innerHTML = `
+      <div class="flex items-start gap-3">
+        <i data-lucide="file-text" class="w-4 h-4 text-slate-400 mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">${highlight(result.name, query)}</h3>
+          <p class="text-[10px] text-slate-400 truncate mb-1.5">${result.path}</p>
+          ${result.contentMatch ? `<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 italic">${highlight(result.contentMatch, query)}</p>` : ""}
+        </div>
+      </div>
+    `;
+    
+    item.addEventListener("click", async () => {
+      await openFile(result.handle);
+      // Optional: highlight text in editor if it was a content match?
+    });
+    
+    searchResultsContainer.appendChild(item);
+  });
+  
+  createIcons({ icons, root: searchResultsContainer });
+}
 homepageToggle.addEventListener("change", onHomepageToggleChange);
 
 if (themeLightBtn) themeLightBtn.addEventListener("click", () => setTheme("light"));
