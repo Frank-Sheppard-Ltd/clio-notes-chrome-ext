@@ -112,6 +112,18 @@
     @apply text-amber-500;
   }
   
+  .library-summary .item-icon {
+    @apply text-indigo-500;
+  }
+
+  .library-root {
+    @apply mb-4 last:mb-0;
+  }
+
+  .library-root > details > summary {
+    @apply bg-slate-100 dark:bg-slate-800/50 border border-[var(--color-border)] mb-1;
+  }
+  
   .file-button {
     @apply flex items-center w-full border-none bg-transparent text-left px-1.5 py-1 pl-5 text-[var(--color-text)] rounded-lg cursor-pointer transition-colors duration-150 ease-in-out hover:bg-black/5 dark:hover:bg-white/5;
   }

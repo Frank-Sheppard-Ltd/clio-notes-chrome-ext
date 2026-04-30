@@ -308,6 +308,9 @@ function onExplorerContextMenu(event) {
   event.preventDefault();
 
   if (folderTarget) {
+    const libraryId = folderTarget.dataset.libraryId;
+    if (libraryId) void switchActiveLibrary(libraryId);
+
     const fullPath = folderTarget.dataset.entryPath || "";
     const relativePath = removeRootPrefix(fullPath);
     const insideTrash = isPathInTrash(relativePath);
@@ -325,6 +328,9 @@ function onExplorerContextMenu(event) {
   }
 
   if (fileTarget) {
+    const libraryId = fileTarget.dataset.libraryId;
+    if (libraryId) void switchActiveLibrary(libraryId);
+
     const fullPath = fileTarget.dataset.entryPath || "";
     const relativePath = removeRootPrefix(fullPath);
     const insideTrash = isPathInTrash(relativePath);
@@ -534,14 +540,22 @@ async function initializeLibrary() {
 
     const storedActiveId = localStorage.getItem(ACTIVE_LIBRARY_KEY) || "";
     const activeEntry = state.libraryFolders.find((entry) => entry.id === storedActiveId);
+    
     if (activeEntry) {
       state.activeLibraryFolderId = activeEntry.id;
-      // We still call loadRootFolder. It will handle permission check inside refreshTree.
-      await loadRootFolder(activeEntry.handle);
-      return;
+      state.rootHandle = activeEntry.handle;
+    } else if (state.libraryFolders.length > 0) {
+      // If no active library is stored but we have libraries, pick the first one as active root
+      state.activeLibraryFolderId = state.libraryFolders[0].id;
+      state.rootHandle = state.libraryFolders[0].handle;
     }
 
-    setStatus("Open Settings > Library and add a folder to get started.");
+    if (state.libraryFolders.length > 0) {
+      await refreshTree();
+      await tryOpenFrontPageForActiveFolder();
+    } else {
+      setStatus("Open Settings > Library and add a folder to get started.");
+    }
   } catch (error) {
     console.error(error);
     setStatus("Unable to load saved library folders.");
@@ -699,14 +713,17 @@ async function removeLibraryFolder(folderId) {
   if (state.activeLibraryFolderId === folderId) {
     state.activeLibraryFolderId = "";
     localStorage.removeItem(ACTIVE_LIBRARY_KEY);
-    state.rootHandle = null;
-    clearCurrentSelection();
-    folderName.textContent = "No folder selected";
-    treeRoot.innerHTML = '<p class="muted">Choose a folder from Settings > Library.</p>';
-    updateExplorerActionButtons();
-    if (newFileBtn) newFileBtn.disabled = true;
+    
+    if (state.libraryFolders.length > 0) {
+      await switchActiveLibrary(state.libraryFolders[0].id);
+    } else {
+      state.rootHandle = null;
+      clearCurrentSelection();
+      folderName.textContent = "No folder selected";
+    }
   }
 
+  await refreshTree();
   renderLibraryList();
   setStatus("Removed " + entry.name + " from Library.");
 }
@@ -835,7 +852,7 @@ function updateExplorerActionButtons() {
   // Actions are handled through the explorer context menu.
 }
 
-async function buildFolderTree(dirHandle, pathPrefix) {
+async function buildFolderTree(dirHandle, pathPrefix, libraryId) {
   const container = document.createElement("ul");
 
   const directories = [];
@@ -881,7 +898,10 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     summary.dataset.entryType = "folder";
     summary.dataset.entryPath = folderPath;
     summary.dataset.parentPath = pathPrefix;
+    summary.dataset.libraryId = libraryId;
+    
     summary.addEventListener("click", () => {
+      void switchActiveLibrary(libraryId);
       setExplorerSelection("folder", folderPath, pathPrefix);
     });
 
@@ -913,7 +933,7 @@ async function buildFolderTree(dirHandle, pathPrefix) {
       localStorage.setItem(EXPANDED_FOLDERS_KEY, JSON.stringify(Array.from(state.expandedFolders)));
     });
 
-    details.appendChild(await buildFolderTree(directory.handle, folderPath));
+    details.appendChild(await buildFolderTree(directory.handle, folderPath, libraryId));
 
     item.appendChild(details);
     container.appendChild(item);
@@ -950,8 +970,10 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     button.dataset.entryType = "file";
     button.dataset.entryPath = filePath;
     button.dataset.parentPath = pathPrefix;
+    button.dataset.libraryId = libraryId;
 
     button.addEventListener("click", () => {
+      void switchActiveLibrary(libraryId);
       setExplorerSelection("file", filePath, pathPrefix);
       void openMarkdownFile(file.handle, filePath, button);
     });
@@ -978,72 +1000,116 @@ async function buildFolderTree(dirHandle, pathPrefix) {
 }
 
 async function refreshTree() {
-  if (!state.rootHandle) {
+  if (state.libraryFolders.length === 0) {
+    treeRoot.innerHTML = '<p class="muted">Choose a folder from Settings > Library.</p>';
     return;
   }
 
   treeRoot.innerHTML = "";
   attachDropTarget(explorerHead, "");
 
-  try {
-    const tree = await buildFolderTree(state.rootHandle, state.rootHandle.name);
-    treeRoot.appendChild(tree);
-    createIcons({ icons, root: treeRoot });
-    updateExplorerActionButtons();
-  } catch (error) {
-    console.error("Refresh tree error:", error);
+  const treeList = document.createElement("ul");
+  treeList.className = "tree-root-list";
+  treeRoot.appendChild(treeList);
+
+  for (const entry of state.libraryFolders) {
+    const rootItem = document.createElement("li");
+    rootItem.className = "tree-item library-root";
+    treeList.appendChild(rootItem);
+
+    const details = document.createElement("details");
+    details.open = true; // Root libraries are open by default
+    rootItem.appendChild(details);
+
+    const summary = document.createElement("summary");
+    summary.className = "folder-summary library-summary";
+    summary.dataset.entryType = "root";
+    summary.dataset.entryPath = entry.name;
+    summary.dataset.libraryId = entry.id;
     
-    // If it's a security/permission error, show reconnect button
-    const container = document.createElement("div");
-    container.className = "flex flex-col items-center justify-center h-full text-center p-6 gap-4";
-    
-    const icon = document.createElement("i");
-    icon.setAttribute("data-lucide", "shield-alert");
-    icon.className = "w-12 h-12 text-amber-500 mb-2";
-    
-    const text = document.createElement("p");
-    text.className = "text-sm text-slate-600 dark:text-slate-400 font-medium";
-    text.textContent = "Access to this folder was lost. Chrome requires you to re-grant permission after a refresh.";
-    
-    const reconnectBtn = document.createElement("button");
-    reconnectBtn.className = "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm flex items-center gap-2";
-    reconnectBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Reconnect Library';
-    reconnectBtn.onclick = () => {
-      void reconnectActiveLibrary();
-    };
-    
-    container.appendChild(icon);
-    container.appendChild(text);
-    container.appendChild(reconnectBtn);
-    treeRoot.appendChild(container);
-    
-    createIcons({ icons, root: treeRoot });
-    setStatus("Permission required to access library.");
+    summary.addEventListener("click", () => {
+      void switchActiveLibrary(entry.id);
+      setExplorerSelection("root", entry.name, entry.name);
+    });
+
+    const summaryRow = document.createElement("span");
+    summaryRow.className = "tree-row";
+
+    const label = document.createElement("span");
+    label.className = "tree-label";
+
+    const libIcon = document.createElement("i");
+    libIcon.setAttribute("data-lucide", "library");
+    libIcon.className = "item-icon text-indigo-500 w-4 h-4";
+
+    const libNameText = document.createElement("span");
+    libNameText.className = "item-name font-bold";
+    libNameText.textContent = entry.name;
+
+    label.appendChild(libIcon);
+    label.appendChild(libNameText);
+    summaryRow.appendChild(label);
+    summary.appendChild(summaryRow);
+    details.appendChild(summary);
+
+    try {
+      const hasPermission = await hasReadWritePermission(entry.handle);
+      if (hasPermission) {
+        const tree = await buildFolderTree(entry.handle, entry.name, entry.id);
+        details.appendChild(tree);
+      } else {
+        const reconnectContainer = document.createElement("div");
+        reconnectContainer.className = "p-2 pl-6";
+        
+        const reconnectBtn = document.createElement("button");
+        reconnectBtn.className = "text-xs text-indigo-600 hover:underline flex items-center gap-1";
+        reconnectBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i> Reconnect';
+        reconnectBtn.onclick = (e) => {
+          e.stopPropagation();
+          void reconnectLibrary(entry.id);
+        };
+        reconnectContainer.appendChild(reconnectBtn);
+        details.appendChild(reconnectContainer);
+      }
+    } catch (error) {
+      console.error(`Error rendering library ${entry.name}:`, error);
+    }
   }
+
+  createIcons({ icons, root: treeRoot });
+  updateExplorerActionButtons();
 }
 
-async function reconnectActiveLibrary() {
-  if (!state.rootHandle) {
-    setStatus("No folder to reconnect.");
-    return;
-  }
+async function switchActiveLibrary(libraryId) {
+  if (state.activeLibraryFolderId === libraryId) return;
+
+  const entry = state.libraryFolders.find(f => f.id === libraryId);
+  if (!entry) return;
+
+  state.activeLibraryFolderId = libraryId;
+  state.rootHandle = entry.handle;
+  localStorage.setItem(ACTIVE_LIBRARY_KEY, libraryId);
+  folderName.textContent = entry.name;
+  renderLibraryList();
+}
+
+async function reconnectLibrary(libraryId) {
+  const entry = state.libraryFolders.find(f => f.id === libraryId);
+  if (!entry) return;
 
   try {
-    const hasPermission = await ensureReadWritePermission(state.rootHandle);
+    const hasPermission = await ensureReadWritePermission(entry.handle);
     if (hasPermission) {
-      setStatus("Permission re-granted. Refreshing explorer...");
-      // Add a tiny delay to ensure the browser has updated the handle state
-      await new Promise(r => setTimeout(r, 100));
+      await switchActiveLibrary(libraryId);
       await refreshTree();
       await tryOpenFrontPageForActiveFolder();
-    } else {
-      setStatus("Permission was not granted.");
     }
   } catch (error) {
     console.error("Reconnection error:", error);
-    setStatus("Failed to reconnect.");
+    setStatus("Failed to reconnect library.");
   }
 }
+
 
 async function openMarkdownFile(fileHandle, filePath, clickedButton) {
   try {
@@ -1888,21 +1954,6 @@ function clearCurrentSelection() {
   insertImageBtn.disabled = true;
 }
 
-function removeRootPrefix(fullPath) {
-  if (!state.rootHandle) {
-    return fullPath;
-  }
-
-  if (fullPath === state.rootHandle.name) {
-    return "";
-  }
-
-  const prefix = state.rootHandle.name + "/";
-  if (fullPath.startsWith(prefix)) {
-    return fullPath.slice(prefix.length);
-  }
-  return fullPath;
-}
 
 function splitParentAndName(relativePath) {
   const parts = relativePath.split("/");
@@ -1912,7 +1963,6 @@ function splitParentAndName(relativePath) {
     name
   };
 }
-
 function formatRelativePath(relativePath) {
   if (!relativePath) {
     return "/";
@@ -1920,13 +1970,43 @@ function formatRelativePath(relativePath) {
   return "/" + relativePath;
 }
 
+function removeRootPrefix(fullPath) {
+  if (!fullPath) return "";
+  
+  for (const entry of state.libraryFolders) {
+    const prefix = entry.name;
+    if (fullPath === prefix) return "";
+    if (fullPath.startsWith(prefix + "/")) {
+      return fullPath.substring(prefix.length + 1);
+    }
+  }
+  
+  return fullPath;
+}
+
 async function getDirectoryHandleByRelativePath(relativePath) {
+  // If relativePath is empty, it means we want the root of the ACTIVE library
   if (!relativePath) {
     return state.rootHandle;
   }
 
+  // Check if relativePath is actually a fullPath starting with a library name
+  for (const entry of state.libraryFolders) {
+    if (relativePath === entry.name) return entry.handle;
+    if (relativePath.startsWith(entry.name + "/")) {
+      const actualRelative = relativePath.substring(entry.name.length + 1);
+      return await getDirectoryHandleByRootAndRelative(entry.handle, actualRelative);
+    }
+  }
+
+  // Fallback to active root
+  return await getDirectoryHandleByRootAndRelative(state.rootHandle, relativePath);
+}
+
+async function getDirectoryHandleByRootAndRelative(rootHandle, relativePath) {
+  if (!relativePath) return rootHandle;
   const parts = relativePath.split("/").filter(Boolean);
-  let current = state.rootHandle;
+  let current = rootHandle;
 
   for (const part of parts) {
     current = await current.getDirectoryHandle(part);
