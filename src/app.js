@@ -30,7 +30,16 @@ import {
   Bold,
   Italic,
   Strikethrough,
-  Eye
+  Eye,
+  Code,
+  Mail,
+  Play,
+  MessageSquare,
+  Library,
+  LockOpen,
+  Send,
+  Minus,
+  Lock
 } from 'lucide';
 
 const icons = {
@@ -64,7 +73,16 @@ const icons = {
   Bold,
   Italic,
   Strikethrough,
-  Eye
+  Eye,
+  Code,
+  Mail,
+  Play,
+  MessageSquare,
+  Library,
+  LockOpen,
+  Send,
+  Minus,
+  Lock
 };
 
 const settingsBtn = document.getElementById("settings-btn");
@@ -102,6 +120,21 @@ const activityExplorerBtn = document.getElementById("activity-explorer-btn");
 const activitySearchBtn = document.getElementById("activity-search-btn");
 const mainContent = document.getElementById("main-content");
 const tabBar = document.getElementById("tab-bar");
+const privacyScreen = document.getElementById("privacy-screen");
+const privacyClock = document.getElementById("privacy-clock");
+const privacyDate = document.getElementById("privacy-date");
+const privacySearchForm = document.getElementById("privacy-search-form");
+const privacySearchInput = document.getElementById("privacy-search-input");
+const privacyAiChat = document.getElementById("privacy-ai-chat");
+const privacyAiForm = document.getElementById("privacy-ai-form");
+const privacyAiInput = document.getElementById("privacy-ai-input");
+const privacyAiMessages = document.getElementById("privacy-ai-messages");
+const privacyAiClose = document.getElementById("privacy-ai-close");
+const privacyUnlockBtn = document.getElementById("privacy-unlock-btn");
+const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
+const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
+const privacySearchSelect = document.getElementById("privacy-search-engine");
+const privacyAiSelect = document.getElementById("privacy-ai-engine");
 
 const LIBRARY_DB_NAME = "clio-notes-db";
 const LIBRARY_DB_VERSION = 1;
@@ -115,6 +148,10 @@ const EXPLORER_VISIBLE_KEY = "clio-notes-explorer-visible";
 const OPEN_TABS_KEY = "clio-notes-open-tabs";
 const ACTIVE_TAB_KEY = "clio-notes-active-tab";
 const THEME_KEY = "clio-notes-theme";
+const PRIVACY_ENABLED_KEY = "clio-notes-privacy-enabled";
+const PRIVACY_TIMEOUT_KEY = "clio-notes-privacy-timeout";
+const PRIVACY_SEARCH_KEY = "clio-notes-privacy-search";
+const PRIVACY_AI_KEY = "clio-notes-privacy-ai";
 
 const state = {
   libraryFolders: [],
@@ -140,7 +177,13 @@ const state = {
   explorerVisible: true,
   tabs: [],
   activeTabId: null,
-  theme: "system"
+  theme: "system",
+  privacyEnabled: false,
+  privacyTimeout: 5,
+  privacySearchEngine: "https://www.google.com/search?q=",
+  privacyAiEngine: "https://gemini.google.com/app",
+  privacyActive: false,
+  lastActivity: Date.now()
 };
 
 settingsBtn.addEventListener("click", toggleSettingsPanel);
@@ -148,6 +191,8 @@ closeSettingsBtn.addEventListener("click", () => setSettingsPanelOpen(false));
 addLibraryFolderBtn.addEventListener("click", () => {
   void addFolderToLibrary();
 });
+
+void initializePrivacyScreen();
 homepageToggle.addEventListener("change", onHomepageToggleChange);
 
 if (themeLightBtn) themeLightBtn.addEventListener("click", () => setTheme("light"));
@@ -2626,3 +2671,134 @@ function escapeHtml(text) {
 }
 
 renderPreview("");
+
+async function initializePrivacyScreen() {
+  // Load settings
+  state.privacyEnabled = localStorage.getItem(PRIVACY_ENABLED_KEY) === "true";
+  state.privacyTimeout = parseInt(localStorage.getItem(PRIVACY_TIMEOUT_KEY) || "5", 10);
+  state.privacySearchEngine = localStorage.getItem(PRIVACY_SEARCH_KEY) || "https://www.google.com/search?q=";
+  state.privacyAiEngine = localStorage.getItem(PRIVACY_AI_KEY) || "https://gemini.google.com/app";
+
+  // Update UI settings
+  if (privacyEnabledToggle) privacyEnabledToggle.checked = state.privacyEnabled;
+  if (privacyTimeoutInput) privacyTimeoutInput.value = state.privacyTimeout;
+  if (privacySearchSelect) privacySearchSelect.value = state.privacySearchEngine;
+  if (privacyAiSelect) privacyAiSelect.value = state.privacyAiEngine;
+
+  // Listeners for settings
+  privacyEnabledToggle?.addEventListener("change", (e) => {
+    state.privacyEnabled = e.target.checked;
+    localStorage.setItem(PRIVACY_ENABLED_KEY, state.privacyEnabled);
+  });
+  privacyTimeoutInput?.addEventListener("change", (e) => {
+    state.privacyTimeout = parseInt(e.target.value, 10);
+    localStorage.setItem(PRIVACY_TIMEOUT_KEY, state.privacyTimeout);
+  });
+  privacySearchSelect?.addEventListener("change", (e) => {
+    state.privacySearchEngine = e.target.value;
+    localStorage.setItem(PRIVACY_SEARCH_KEY, state.privacySearchEngine);
+  });
+  privacyAiSelect?.addEventListener("change", (e) => {
+    state.privacyAiEngine = e.target.value;
+    localStorage.setItem(PRIVACY_AI_KEY, state.privacyAiEngine);
+  });
+
+  // Activity listeners
+  const resetActivity = () => {
+    state.lastActivity = Date.now();
+    if (state.privacyActive) hidePrivacyScreen();
+  };
+
+  window.addEventListener("mousemove", resetActivity);
+  window.addEventListener("keydown", resetActivity);
+  window.addEventListener("mousedown", resetActivity);
+  window.addEventListener("touchstart", resetActivity);
+
+  // Search logic
+  privacySearchForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const query = privacySearchInput.value.trim();
+    if (query) {
+      window.open(state.privacySearchEngine + encodeURIComponent(query), "_blank");
+      privacySearchInput.value = "";
+    }
+  });
+
+  // AI Chat logic
+  privacyAiForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = privacyAiInput.value.trim();
+    if (message) {
+      appendAiMessage("user", message);
+      privacyAiInput.value = "";
+      
+      // Simulate AI response or redirect to selected engine
+      setTimeout(() => {
+        if (message.toLowerCase().includes("open")) {
+           appendAiMessage("assistant", "Opening your selected AI engine...");
+           setTimeout(() => window.open(state.privacyAiEngine, "_blank"), 1000);
+        } else {
+           appendAiMessage("assistant", "I'm a privacy-focused assistant. For deep reasoning, I can open " + (new URL(state.privacyAiEngine).hostname) + " for you. Just type 'open'.");
+        }
+      }, 1000);
+    }
+  });
+
+  privacyUnlockBtn?.addEventListener("click", hidePrivacyScreen);
+  privacyAiClose?.addEventListener("click", () => privacyAiChat.classList.add("opacity-0", "translate-y-4"));
+
+  // Start Clock and Idle Check
+  updatePrivacyClock();
+  setInterval(updatePrivacyClock, 1000);
+  setInterval(checkPrivacyIdle, 10000); // Check every 10 seconds
+}
+
+function updatePrivacyClock() {
+  if (!privacyClock) return;
+  const now = new Date();
+  privacyClock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  privacyDate.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function checkPrivacyIdle() {
+  if (!state.privacyEnabled || state.privacyActive) return;
+  
+  const idleTimeMs = Date.now() - state.lastActivity;
+  if (idleTimeMs > state.privacyTimeout * 60000) {
+    showPrivacyScreen();
+  }
+}
+
+function showPrivacyScreen() {
+  if (state.privacyActive) return;
+  state.privacyActive = true;
+  privacyScreen.hidden = false;
+  // Trigger animations
+  setTimeout(() => {
+    privacyScreen.classList.add("opacity-100");
+    privacyScreen.classList.remove("pointer-events-none");
+    createIcons({ icons, root: privacyScreen });
+  }, 10);
+}
+
+function hidePrivacyScreen() {
+  if (!state.privacyActive) return;
+  state.privacyActive = false;
+  privacyScreen.classList.remove("opacity-100");
+  privacyScreen.classList.add("pointer-events-none");
+  setTimeout(() => {
+    privacyScreen.hidden = true;
+  }, 700);
+}
+
+function appendAiMessage(role, text) {
+  const msg = document.createElement("div");
+  if (role === "user") {
+    msg.className = "bg-indigo-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none self-end max-w-[80%] leading-relaxed border border-white/10";
+  } else {
+    msg.className = "bg-white/10 text-white/90 text-xs p-3 rounded-2xl rounded-tl-none self-start max-w-[80%] leading-relaxed border border-white/10";
+  }
+  msg.textContent = text;
+  privacyAiMessages.appendChild(msg);
+  privacyAiMessages.scrollTop = privacyAiMessages.scrollHeight;
+}

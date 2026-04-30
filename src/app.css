@@ -215,7 +215,46 @@
     @apply w-1.5 h-1.5 rounded-full bg-indigo-500 ml-1;
   }
 
+  /* Privacy Screen */
+  #privacy-screen:not([hidden]) {
+    @apply opacity-100 pointer-events-auto flex;
+  }
+
+  #privacy-screen:not([hidden]) #privacy-ai-chat {
+    @apply translate-y-0 opacity-100;
+  }
+
+  #privacy-search-input:focus::placeholder {
+    @apply opacity-0;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+
+  .privacy-glow {
+    animation: pulse-slow 8s infinite;
+  }
+
+  /* Custom scrollbar for AI chat */
+  #privacy-ai-messages::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #privacy-ai-messages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #privacy-ai-messages::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+
+  #privacy-ai-messages::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
 }
+
 
 /* Explorer Collapse */
 #main-content.explorer-collapsed {
