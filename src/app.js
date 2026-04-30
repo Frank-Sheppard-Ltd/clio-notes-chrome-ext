@@ -3105,7 +3105,7 @@ function hidePrivacyScreen() {
   privacyScreen.classList.add("pointer-events-none");
   setTimeout(() => {
     privacyScreen.hidden = true;
-  }, 700);
+  }, 150);
 }
 
 function appendAiMessage(role, text) {
