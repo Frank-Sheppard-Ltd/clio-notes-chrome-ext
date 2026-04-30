@@ -224,6 +224,10 @@
     @apply translate-y-0 opacity-100;
   }
 
+  #privacy-auth-container:not([hidden]) {
+    @apply opacity-100 pointer-events-auto;
+  }
+
   #privacy-search-input:focus::placeholder {
     @apply opacity-0;
   }

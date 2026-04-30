@@ -135,6 +135,12 @@ const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
 const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
 const privacySearchSelect = document.getElementById("privacy-search-engine");
 const privacyAiSelect = document.getElementById("privacy-ai-engine");
+const privacyPasswordSetup = document.getElementById("privacy-password-setup");
+const privacyAuthContainer = document.getElementById("privacy-auth-container");
+const privacyAuthForm = document.getElementById("privacy-auth-form");
+const privacyAuthInput = document.getElementById("privacy-auth-input");
+const privacyAuthError = document.getElementById("privacy-auth-error");
+const privacyAuthCancel = document.getElementById("privacy-auth-cancel");
 
 const LIBRARY_DB_NAME = "clio-notes-db";
 const LIBRARY_DB_VERSION = 1;
@@ -152,6 +158,7 @@ const PRIVACY_ENABLED_KEY = "clio-notes-privacy-enabled";
 const PRIVACY_TIMEOUT_KEY = "clio-notes-privacy-timeout";
 const PRIVACY_SEARCH_KEY = "clio-notes-privacy-search";
 const PRIVACY_AI_KEY = "clio-notes-privacy-ai";
+const PRIVACY_PASSWORD_KEY = "clio-notes-privacy-password";
 
 const state = {
   libraryFolders: [],
@@ -182,6 +189,7 @@ const state = {
   privacyTimeout: 5,
   privacySearchEngine: "https://www.google.com/search?q=",
   privacyAiEngine: "https://gemini.google.com/app",
+  privacyPassword: "",
   privacyActive: false,
   lastActivity: Date.now()
 };
@@ -2678,12 +2686,14 @@ async function initializePrivacyScreen() {
   state.privacyTimeout = parseInt(localStorage.getItem(PRIVACY_TIMEOUT_KEY) || "5", 10);
   state.privacySearchEngine = localStorage.getItem(PRIVACY_SEARCH_KEY) || "https://www.google.com/search?q=";
   state.privacyAiEngine = localStorage.getItem(PRIVACY_AI_KEY) || "https://gemini.google.com/app";
+  state.privacyPassword = localStorage.getItem(PRIVACY_PASSWORD_KEY) || "";
 
   // Update UI settings
   if (privacyEnabledToggle) privacyEnabledToggle.checked = state.privacyEnabled;
   if (privacyTimeoutInput) privacyTimeoutInput.value = state.privacyTimeout;
   if (privacySearchSelect) privacySearchSelect.value = state.privacySearchEngine;
   if (privacyAiSelect) privacyAiSelect.value = state.privacyAiEngine;
+  if (privacyPasswordSetup) privacyPasswordSetup.value = state.privacyPassword;
 
   // Listeners for settings
   privacyEnabledToggle?.addEventListener("change", (e) => {
@@ -2702,11 +2712,14 @@ async function initializePrivacyScreen() {
     state.privacyAiEngine = e.target.value;
     localStorage.setItem(PRIVACY_AI_KEY, state.privacyAiEngine);
   });
+  privacyPasswordSetup?.addEventListener("change", (e) => {
+    state.privacyPassword = e.target.value;
+    localStorage.setItem(PRIVACY_PASSWORD_KEY, state.privacyPassword);
+  });
 
   // Activity listeners
   const resetActivity = () => {
     state.lastActivity = Date.now();
-    if (state.privacyActive) hidePrivacyScreen();
   };
 
   window.addEventListener("mousemove", resetActivity);
@@ -2744,7 +2757,27 @@ async function initializePrivacyScreen() {
     }
   });
 
-  privacyUnlockBtn?.addEventListener("click", hidePrivacyScreen);
+  privacyUnlockBtn?.addEventListener("click", () => {
+    if (state.privacyPassword) {
+      showPrivacyAuth();
+    } else {
+      hidePrivacyScreen();
+    }
+  });
+
+  privacyAuthForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (privacyAuthInput.value === state.privacyPassword) {
+      hidePrivacyAuth();
+      hidePrivacyScreen();
+    } else {
+      privacyAuthError.hidden = false;
+      privacyAuthInput.value = "";
+      privacyAuthInput.focus();
+    }
+  });
+
+  privacyAuthCancel?.addEventListener("click", hidePrivacyAuth);
   privacyAiClose?.addEventListener("click", () => privacyAiChat.classList.add("opacity-0", "translate-y-4"));
 
   // Start Clock and Idle Check
@@ -2801,4 +2834,21 @@ function appendAiMessage(role, text) {
   msg.textContent = text;
   privacyAiMessages.appendChild(msg);
   privacyAiMessages.scrollTop = privacyAiMessages.scrollHeight;
+}
+
+function showPrivacyAuth() {
+  privacyAuthContainer.hidden = false;
+  privacyAuthError.hidden = true;
+  privacyAuthInput.value = "";
+  setTimeout(() => {
+    privacyAuthContainer.classList.add("opacity-100");
+    privacyAuthInput.focus();
+  }, 10);
+}
+
+function hidePrivacyAuth() {
+  privacyAuthContainer.classList.remove("opacity-100");
+  setTimeout(() => {
+    privacyAuthContainer.hidden = true;
+  }, 500);
 }
