@@ -205,6 +205,9 @@ const state = {
 
 settingsBtn.addEventListener("click", toggleSettingsPanel);
 closeSettingsBtn.addEventListener("click", () => setSettingsPanelOpen(false));
+settingsPanel.addEventListener("click", (e) => {
+  if (e.target === settingsPanel) setSettingsPanelOpen(false);
+});
 addLibraryFolderBtn.addEventListener("click", () => {
   void addFolderToLibrary();
 });

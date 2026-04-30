@@ -17,101 +17,109 @@
       </div>
     </header>
 
-    <aside id="settings-panel" class="fixed top-20 right-6 z-50 w-[min(28rem,calc(100vw-2rem))] bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-5" hidden>
-      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-700/50">
-        <strong class="text-lg flex items-center gap-2">
-          <i data-lucide="settings" class="w-5 h-5 text-indigo-500"></i>
-          Settings
-        </strong>
-        <button id="close-settings-btn" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors" type="button" aria-label="Close settings">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+    <aside id="settings-panel" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all" hidden>
+      <div class="w-full max-w-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+        <div class="flex items-center justify-between p-6 pb-4 border-b border-slate-100 dark:border-slate-700/50 shrink-0">
+          <strong class="text-xl flex items-center gap-2">
+            <i data-lucide="settings" class="w-6 h-6 text-indigo-500"></i>
+            Settings
+          </strong>
+          <button id="close-settings-btn" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors" type="button" aria-label="Close settings">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <div class="p-6 pt-4 overflow-y-auto custom-scrollbar flex-1">
+          <section class="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Library</h2>
+              <button id="add-library-folder-btn" class="text-xs px-3 py-2 bg-indigo-600 text-white hover:bg-indigo-500 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20" type="button">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i> Add Folder
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Manage your workspace directories. Folders are persisted across sessions.</p>
+            <ul id="library-list" class="library-list space-y-2"></ul>
+          </section>
+
+          <section class="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Appearance</h2>
+            <div class="flex items-center gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl">
+              <button id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all hover:bg-white dark:hover:bg-slate-700">
+                <i data-lucide="sun" class="w-4 h-4"></i> Light
+              </button>
+              <button id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all hover:bg-white dark:hover:bg-slate-700">
+                <i data-lucide="moon" class="w-4 h-4"></i> Dark
+              </button>
+              <button id="theme-system-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all hover:bg-white dark:hover:bg-slate-700">
+                <i data-lucide="monitor" class="w-4 h-4"></i> System
+              </button>
+            </div>
+          </section>
+
+          <section class="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Privacy Screen</h2>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input id="privacy-enabled-toggle" type="checkbox" class="sr-only peer">
+                <div class="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+            
+            <div class="space-y-5">
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Idle Timeout (minutes)</label>
+                <input id="privacy-timeout-input" type="number" min="1" max="60" value="5" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+              </div>
+              
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Search Engine</label>
+                <select id="privacy-search-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                  <option value="https://www.google.com/search?q=">Google</option>
+                  <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+                  <option value="https://www.bing.com/search?q=">Bing</option>
+                  <option value="https://www.perplexity.ai/search?q=">Perplexity</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">AI Engine</label>
+                <select id="privacy-ai-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                  <option value="https://gemini.google.com/app">Google Gemini</option>
+                  <option value="https://chatgpt.com">ChatGPT</option>
+                  <option value="https://claude.ai">Claude</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Password Protection</label>
+                <input id="privacy-password-setup" type="password" placeholder="Leave empty for no password" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Quick Links</label>
+                <textarea id="privacy-links-setup" rows="4" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none resize-none custom-scrollbar" placeholder="https://github.com&#10;https://gmail.com"></textarea>
+                <p class="mt-2 text-[10px] text-slate-400 italic">Enter one URL per line. Icons are matched automatically.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Chrome Homepage</h2>
+              <button id="apply-homepage-btn" class="text-xs px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg font-bold transition-all" type="button">Apply</button>
+            </div>
+            <label class="flex items-center gap-3 text-sm cursor-pointer select-none mb-3" for="homepage-toggle">
+              <input id="homepage-toggle" type="checkbox" class="w-4.5 h-4.5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+              <span class="font-medium text-slate-600 dark:text-slate-300">Set as Chrome homepage</span>
+            </label>
+            <p class="text-xs text-slate-400 leading-relaxed mb-3">Confirmation required. Apply opens settings and copies the URL.</p>
+            <div class="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+              <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Extension URL</p>
+              <code id="homepage-url" class="text-xs text-indigo-600 dark:text-indigo-400 break-all select-all font-mono"></code>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <section class="mb-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-sm font-bold">Library</h2>
-          <button id="add-library-folder-btn" class="text-xs px-2.5 py-1.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-500/30 rounded-md font-semibold transition-colors flex items-center gap-1.5" type="button">
-            <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> Add Folder
-          </button>
-        </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Folders are persisted and can be reopened later.</p>
-        <ul id="library-list" class="library-list"></ul>
-      </section>
-
-      <section class="mb-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60">
-        <h2 class="text-sm font-bold mb-3">Appearance</h2>
-        <div class="flex items-center gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-lg">
-          <button id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all hover:bg-white dark:hover:bg-slate-700">
-            <i data-lucide="sun" class="w-3.5 h-3.5"></i> Light
-          </button>
-          <button id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all hover:bg-white dark:hover:bg-slate-700">
-            <i data-lucide="moon" class="w-3.5 h-3.5"></i> Dark
-          </button>
-          <button id="theme-system-btn" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all hover:bg-white dark:hover:bg-slate-700">
-            <i data-lucide="monitor" class="w-3.5 h-3.5"></i> System
-          </button>
-        </div>
-      </section>
-
-      <section class="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-bold">Privacy Screen</h2>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input id="privacy-enabled-toggle" type="checkbox" class="sr-only peer">
-            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-          </label>
-        </div>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Idle Timeout (minutes)</label>
-            <input id="privacy-timeout-input" type="number" min="1" max="60" value="5" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
-          </div>
-          
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Search Engine</label>
-            <select id="privacy-search-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
-              <option value="https://www.google.com/search?q=">Google</option>
-              <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
-              <option value="https://www.bing.com/search?q=">Bing</option>
-              <option value="https://www.perplexity.ai/search?q=">Perplexity</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">AI Engine</label>
-            <select id="privacy-ai-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
-              <option value="https://gemini.google.com/app">Google Gemini</option>
-              <option value="https://chatgpt.com">ChatGPT</option>
-              <option value="https://claude.ai">Claude</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Password (optional)</label>
-            <input id="privacy-password-setup" type="password" placeholder="Leave empty for no password" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Quick Links (one URL per line)</label>
-            <textarea id="privacy-links-setup" rows="3" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none resize-none" placeholder="https://github.com&#10;https://gmail.com"></textarea>
-          </div>
-        </div>
-      </section>
-
-      <section class="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-bold">Chrome Homepage</h2>
-          <button id="apply-homepage-btn" class="text-xs px-2.5 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md font-semibold transition-colors" type="button">Apply</button>
-        </div>
-        <label class="flex items-center gap-3 text-sm cursor-pointer select-none" for="homepage-toggle">
-          <input id="homepage-toggle" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
-          <span>Set Clio Notes as Chrome homepage/start page</span>
-        </label>
-        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Chrome requires confirmation. Apply opens startup settings and copies the Clio Notes URL.</p>
-        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400 truncate">URL: <span id="homepage-url" class="font-mono text-indigo-600 dark:text-indigo-400 select-all"></span></p>
-      </section>
     </aside>
 
     <main id="main-content" class="grid grid-cols-1 lg:grid-cols-[48px_320px_1fr] flex-1 min-h-0">
