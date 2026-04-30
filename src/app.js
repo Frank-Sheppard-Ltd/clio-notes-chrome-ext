@@ -130,11 +130,13 @@ const privacyDate = document.getElementById("privacy-date");
 const privacyShortcuts = document.getElementById("privacy-shortcuts");
 const privacySearchForm = document.getElementById("privacy-search-form");
 const privacySearchInput = document.getElementById("privacy-search-input");
-const privacyAiChat = document.getElementById("privacy-ai-chat");
+const privacyHubSearchTab = document.getElementById("privacy-hub-search-tab");
+const privacyHubAiTab = document.getElementById("privacy-hub-ai-tab");
+const privacyHubSearchPane = document.getElementById("privacy-hub-search-pane");
+const privacyHubAiPane = document.getElementById("privacy-hub-ai-pane");
 const privacyAiForm = document.getElementById("privacy-ai-form");
 const privacyAiInput = document.getElementById("privacy-ai-input");
 const privacyAiMessages = document.getElementById("privacy-ai-messages");
-const privacyAiClose = document.getElementById("privacy-ai-close");
 const privacyUnlockBtn = document.getElementById("privacy-unlock-btn");
 const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
 const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
@@ -142,6 +144,7 @@ const privacySearchSelect = document.getElementById("privacy-search-engine");
 const privacyAiSelect = document.getElementById("privacy-ai-engine");
 const privacyPasswordSetup = document.getElementById("privacy-password-setup");
 const privacyLinksSetup = document.getElementById("privacy-links-setup");
+const privacyTimezoneSelect = document.getElementById("privacy-timezone-select");
 const privacyLockTrigger = document.getElementById("privacy-lock-trigger");
 const privacyAuthContainer = document.getElementById("privacy-auth-container");
 const privacyAuthForm = document.getElementById("privacy-auth-form");
@@ -167,6 +170,7 @@ const PRIVACY_SEARCH_KEY = "clio-notes-privacy-search";
 const PRIVACY_AI_KEY = "clio-notes-privacy-ai";
 const PRIVACY_PASSWORD_KEY = "clio-notes-privacy-password";
 const PRIVACY_LINKS_KEY = "clio-notes-privacy-links";
+const PRIVACY_TIMEZONE_KEY = "clio-notes-privacy-timezone";
 
 const state = {
   libraryFolders: [],
@@ -199,6 +203,7 @@ const state = {
   privacyAiEngine: "https://gemini.google.com/app",
   privacyPassword: "",
   privacyLinks: "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com",
+  privacyTimezone: "auto",
   privacyActive: false,
   lastActivity: Date.now()
 };
@@ -2701,6 +2706,7 @@ async function initializePrivacyScreen() {
   state.privacyAiEngine = localStorage.getItem(PRIVACY_AI_KEY) || "https://gemini.google.com/app";
   state.privacyPassword = localStorage.getItem(PRIVACY_PASSWORD_KEY) || "";
   state.privacyLinks = localStorage.getItem(PRIVACY_LINKS_KEY) || "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com";
+  state.privacyTimezone = localStorage.getItem(PRIVACY_TIMEZONE_KEY) || "auto";
 
   // Update UI settings
   if (privacyEnabledToggle) privacyEnabledToggle.checked = state.privacyEnabled;
@@ -2709,6 +2715,7 @@ async function initializePrivacyScreen() {
   if (privacyAiSelect) privacyAiSelect.value = state.privacyAiEngine;
   if (privacyPasswordSetup) privacyPasswordSetup.value = state.privacyPassword;
   if (privacyLinksSetup) privacyLinksSetup.value = state.privacyLinks;
+  if (privacyTimezoneSelect) privacyTimezoneSelect.value = state.privacyTimezone;
 
   // Listeners for settings
   privacyEnabledToggle?.addEventListener("change", (e) => {
@@ -2734,6 +2741,11 @@ async function initializePrivacyScreen() {
   privacyLinksSetup?.addEventListener("change", (e) => {
     state.privacyLinks = e.target.value;
     localStorage.setItem(PRIVACY_LINKS_KEY, state.privacyLinks);
+  });
+  privacyTimezoneSelect?.addEventListener("change", (e) => {
+    state.privacyTimezone = e.target.value;
+    localStorage.setItem(PRIVACY_TIMEZONE_KEY, state.privacyTimezone);
+    updatePrivacyClock(); // Immediate update
   });
 
   // Activity listeners
@@ -2776,6 +2788,29 @@ async function initializePrivacyScreen() {
     }
   });
 
+  // Hub Tab Switching
+  const switchPrivacyTab = (tab) => {
+    if (tab === "search") {
+      privacyHubSearchTab.classList.add("bg-white/10", "shadow-lg");
+      privacyHubSearchTab.classList.remove("text-white/40", "hover:bg-white/5");
+      privacyHubAiTab.classList.remove("bg-white/10", "shadow-lg");
+      privacyHubAiTab.classList.add("text-white/40", "hover:bg-white/5");
+      privacyHubSearchPane.classList.remove("hidden");
+      privacyHubAiPane.classList.add("hidden");
+    } else {
+      privacyHubAiTab.classList.add("bg-white/10", "shadow-lg");
+      privacyHubAiTab.classList.remove("text-white/40", "hover:bg-white/5");
+      privacyHubSearchTab.classList.remove("bg-white/10", "shadow-lg");
+      privacyHubSearchTab.classList.add("text-white/40", "hover:bg-white/5");
+      privacyHubAiPane.classList.remove("hidden");
+      privacyHubSearchPane.classList.add("hidden");
+    }
+    createIcons({ icons, root: privacyScreen });
+  };
+
+  privacyHubSearchTab?.addEventListener("click", () => switchPrivacyTab("search"));
+  privacyHubAiTab?.addEventListener("click", () => switchPrivacyTab("ai"));
+
   privacyUnlockBtn?.addEventListener("click", () => {
     if (state.privacyPassword) {
       showPrivacyAuth();
@@ -2799,19 +2834,33 @@ async function initializePrivacyScreen() {
   });
 
   privacyAuthCancel?.addEventListener("click", hidePrivacyAuth);
-  privacyAiClose?.addEventListener("click", () => privacyAiChat.classList.add("opacity-0", "translate-y-4"));
 
   // Start Clock and Idle Check
+  console.log("Starting Privacy Clock...", { privacyClock, privacyDate });
   updatePrivacyClock();
   setInterval(updatePrivacyClock, 1000);
   setInterval(checkPrivacyIdle, 10000); // Check every 10 seconds
 }
 
 function updatePrivacyClock() {
-  if (!privacyClock) return;
+  if (!privacyClock) {
+    console.error("Privacy Clock element not found!");
+    return;
+  }
   const now = new Date();
-  privacyClock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-  privacyDate.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+  const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+  
+  if (state.privacyTimezone !== "auto") {
+    options.timeZone = state.privacyTimezone;
+    dateOptions.timeZone = state.privacyTimezone;
+  }
+
+  const timeStr = now.toLocaleTimeString([], options);
+  const dateStr = now.toLocaleDateString([], dateOptions);
+  
+  privacyClock.textContent = timeStr;
+  privacyDate.textContent = dateStr;
 }
 
 function checkPrivacyIdle() {

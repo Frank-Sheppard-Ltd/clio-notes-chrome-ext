@@ -91,6 +91,21 @@
               </div>
 
               <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Timezone</label>
+                <select id="privacy-timezone-select" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                  <option value="auto">System Default</option>
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">New York (EST/EDT)</option>
+                  <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+                  <option value="Europe/London">London (GMT/BST)</option>
+                  <option value="Europe/Paris">Paris (CET/CEST)</option>
+                  <option value="Asia/Tokyo">Tokyo (JST)</option>
+                  <option value="Asia/Dubai">Dubai (GST)</option>
+                  <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+                </select>
+              </div>
+
+              <div>
                 <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Password Protection</label>
                 <input id="privacy-password-setup" type="password" placeholder="Leave empty for no password" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
               </div>
@@ -247,53 +262,54 @@
       <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-3xl"></div>
       <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-transparent to-emerald-500/10"></div>
       
-      <div class="relative w-full max-w-3xl flex flex-col items-center gap-12 text-center">
+      <div class="relative w-full max-w-2xl flex flex-col items-center gap-10 text-center">
         <!-- Time/Date Info -->
         <div class="flex flex-col gap-2">
           <div id="privacy-clock" class="text-7xl font-light tracking-tighter text-white drop-shadow-2xl">00:00</div>
           <div id="privacy-date" class="text-sm font-medium uppercase tracking-[0.3em] text-indigo-200/60">Monday, January 1</div>
         </div>
 
-        <!-- Search Bar -->
-        <div class="w-full max-w-2xl relative group">
-          <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-2xl blur opacity-25 group-focus-within:opacity-50 transition duration-1000"></div>
-          <form id="privacy-search-form" class="relative flex items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-2 shadow-2xl">
-            <div class="pl-4 text-white/50">
-              <i data-lucide="search" class="w-5 h-5"></i>
+        <!-- Privacy Hub (Search & AI) -->
+        <div class="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+          <!-- Hub Tabs -->
+          <div class="flex items-center border-b border-white/10 bg-white/5 p-1.5">
+            <button id="privacy-hub-search-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white rounded-2xl transition-all bg-white/10 shadow-lg">
+              <i data-lucide="search" class="w-4 h-4"></i> Web Search
+            </button>
+            <button id="privacy-hub-ai-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white/40 hover:text-white rounded-2xl transition-all hover:bg-white/5">
+              <i data-lucide="message-square" class="w-4 h-4"></i> AI Assistant
+            </button>
+          </div>
+          
+          <!-- Hub Content -->
+          <div class="p-6">
+            <!-- Search Pane -->
+            <div id="privacy-hub-search-pane" class="block">
+              <form id="privacy-search-form" class="flex items-center gap-3">
+                <input id="privacy-search-input" type="text" placeholder="Search the web..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-lg" />
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-500/20">Search</button>
+              </form>
             </div>
-            <input id="privacy-search-input" type="text" placeholder="Search the web..." class="w-full bg-transparent border-none focus:ring-0 text-white placeholder:text-white/30 px-4 py-3 text-lg outline-none" />
-            <button type="submit" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-semibold transition-all">Search</button>
-          </form>
+            
+            <!-- AI Pane -->
+            <div id="privacy-hub-ai-pane" class="hidden flex flex-col gap-4">
+              <div id="privacy-ai-messages" class="h-64 overflow-y-auto custom-scrollbar flex flex-col gap-3 p-2 text-left">
+                <div class="bg-white/5 text-white/60 text-xs p-3 rounded-2xl rounded-tl-none self-start max-w-[85%] border border-white/5 leading-relaxed">
+                  Hi! I'm your Privacy Assistant. How can I help you today?
+                </div>
+              </div>
+              <form id="privacy-ai-form" class="flex items-center gap-2 mt-2">
+                <input id="privacy-ai-input" type="text" placeholder="Type a message..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all" />
+                <button type="submit" class="p-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+                  <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
 
         <!-- Shortcuts -->
         <div id="privacy-shortcuts" class="flex flex-wrap items-center justify-center gap-6"></div>
-      </div>
-
-      <!-- AI Chat Widget -->
-      <div id="privacy-ai-chat" class="fixed bottom-10 right-10 w-80 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-all duration-500 translate-y-4 opacity-0">
-        <div class="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span class="text-sm font-bold text-white tracking-wide">AI Assistant</span>
-          </div>
-          <button id="privacy-ai-close" class="text-white/40 hover:text-white">
-            <i data-lucide="minus" class="w-4 h-4"></i>
-          </button>
-        </div>
-        <div id="privacy-ai-messages" class="h-64 overflow-auto p-4 flex flex-col gap-3">
-          <div class="bg-white/10 text-white/90 text-xs p-3 rounded-2xl rounded-tl-none self-start max-w-[80%] leading-relaxed">
-            Hello! I'm your AI assistant. How can I help you today?
-          </div>
-        </div>
-        <form id="privacy-ai-form" class="p-3 bg-white/5">
-          <div class="relative flex items-center">
-            <input id="privacy-ai-input" type="text" placeholder="Ask anything..." class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-white/30 outline-none focus:border-indigo-500/50 transition-colors" />
-            <button type="submit" class="absolute right-2 text-indigo-400 hover:text-indigo-300">
-              <i data-lucide="send" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </form>
       </div>
 
       <div id="privacy-auth-container" class="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-2xl transition-all duration-500 opacity-0 pointer-events-none" hidden>
