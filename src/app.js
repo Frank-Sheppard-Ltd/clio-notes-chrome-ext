@@ -39,7 +39,9 @@ import {
   LockOpen,
   Send,
   Minus,
-  Lock
+  Lock,
+  Globe,
+  ExternalLink
 } from 'lucide';
 
 const icons = {
@@ -82,7 +84,9 @@ const icons = {
   LockOpen,
   Send,
   Minus,
-  Lock
+  Lock,
+  Globe,
+  ExternalLink
 };
 
 const settingsBtn = document.getElementById("settings-btn");
@@ -123,6 +127,7 @@ const tabBar = document.getElementById("tab-bar");
 const privacyScreen = document.getElementById("privacy-screen");
 const privacyClock = document.getElementById("privacy-clock");
 const privacyDate = document.getElementById("privacy-date");
+const privacyShortcuts = document.getElementById("privacy-shortcuts");
 const privacySearchForm = document.getElementById("privacy-search-form");
 const privacySearchInput = document.getElementById("privacy-search-input");
 const privacyAiChat = document.getElementById("privacy-ai-chat");
@@ -136,6 +141,8 @@ const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
 const privacySearchSelect = document.getElementById("privacy-search-engine");
 const privacyAiSelect = document.getElementById("privacy-ai-engine");
 const privacyPasswordSetup = document.getElementById("privacy-password-setup");
+const privacyLinksSetup = document.getElementById("privacy-links-setup");
+const privacyLockTrigger = document.getElementById("privacy-lock-trigger");
 const privacyAuthContainer = document.getElementById("privacy-auth-container");
 const privacyAuthForm = document.getElementById("privacy-auth-form");
 const privacyAuthInput = document.getElementById("privacy-auth-input");
@@ -159,6 +166,7 @@ const PRIVACY_TIMEOUT_KEY = "clio-notes-privacy-timeout";
 const PRIVACY_SEARCH_KEY = "clio-notes-privacy-search";
 const PRIVACY_AI_KEY = "clio-notes-privacy-ai";
 const PRIVACY_PASSWORD_KEY = "clio-notes-privacy-password";
+const PRIVACY_LINKS_KEY = "clio-notes-privacy-links";
 
 const state = {
   libraryFolders: [],
@@ -190,6 +198,7 @@ const state = {
   privacySearchEngine: "https://www.google.com/search?q=",
   privacyAiEngine: "https://gemini.google.com/app",
   privacyPassword: "",
+  privacyLinks: "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com",
   privacyActive: false,
   lastActivity: Date.now()
 };
@@ -2681,12 +2690,14 @@ function escapeHtml(text) {
 renderPreview("");
 
 async function initializePrivacyScreen() {
+  console.log("Initializing Privacy Screen...", { privacyLockTrigger });
   // Load settings
   state.privacyEnabled = localStorage.getItem(PRIVACY_ENABLED_KEY) === "true";
   state.privacyTimeout = parseInt(localStorage.getItem(PRIVACY_TIMEOUT_KEY) || "5", 10);
   state.privacySearchEngine = localStorage.getItem(PRIVACY_SEARCH_KEY) || "https://www.google.com/search?q=";
   state.privacyAiEngine = localStorage.getItem(PRIVACY_AI_KEY) || "https://gemini.google.com/app";
   state.privacyPassword = localStorage.getItem(PRIVACY_PASSWORD_KEY) || "";
+  state.privacyLinks = localStorage.getItem(PRIVACY_LINKS_KEY) || "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com";
 
   // Update UI settings
   if (privacyEnabledToggle) privacyEnabledToggle.checked = state.privacyEnabled;
@@ -2694,6 +2705,7 @@ async function initializePrivacyScreen() {
   if (privacySearchSelect) privacySearchSelect.value = state.privacySearchEngine;
   if (privacyAiSelect) privacyAiSelect.value = state.privacyAiEngine;
   if (privacyPasswordSetup) privacyPasswordSetup.value = state.privacyPassword;
+  if (privacyLinksSetup) privacyLinksSetup.value = state.privacyLinks;
 
   // Listeners for settings
   privacyEnabledToggle?.addEventListener("change", (e) => {
@@ -2715,6 +2727,10 @@ async function initializePrivacyScreen() {
   privacyPasswordSetup?.addEventListener("change", (e) => {
     state.privacyPassword = e.target.value;
     localStorage.setItem(PRIVACY_PASSWORD_KEY, state.privacyPassword);
+  });
+  privacyLinksSetup?.addEventListener("change", (e) => {
+    state.privacyLinks = e.target.value;
+    localStorage.setItem(PRIVACY_LINKS_KEY, state.privacyLinks);
   });
 
   // Activity listeners
@@ -2765,6 +2781,8 @@ async function initializePrivacyScreen() {
     }
   });
 
+  privacyLockTrigger?.addEventListener("click", showPrivacyScreen);
+
   privacyAuthForm?.addEventListener("submit", (e) => {
     e.preventDefault();
     if (privacyAuthInput.value === state.privacyPassword) {
@@ -2803,15 +2821,49 @@ function checkPrivacyIdle() {
 }
 
 function showPrivacyScreen() {
+  console.log("showPrivacyScreen called, current state:", { active: state.privacyActive, privacyScreen });
   if (state.privacyActive) return;
   state.privacyActive = true;
   privacyScreen.hidden = false;
+  
+  // Render Links
+  renderPrivacyLinks();
+  
   // Trigger animations
   setTimeout(() => {
     privacyScreen.classList.add("opacity-100");
     privacyScreen.classList.remove("pointer-events-none");
     createIcons({ icons, root: privacyScreen });
+    console.log("Privacy screen animations triggered.");
   }, 10);
+}
+
+function renderPrivacyLinks() {
+  if (!privacyShortcuts) return;
+  privacyShortcuts.innerHTML = "";
+  
+  const links = state.privacyLinks.split("\n").map(l => l.trim()).filter(Boolean);
+  links.forEach(url => {
+    let icon = "globe";
+    let title = "Link";
+    
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      title = hostname.replace("www.", "");
+      if (hostname.includes("github")) icon = "code";
+      else if (hostname.includes("gmail") || hostname.includes("mail")) icon = "mail";
+      else if (hostname.includes("youtube")) icon = "play";
+      else if (hostname.includes("twitter") || hostname.includes("x.com")) icon = "message-square";
+    } catch {}
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.className = "p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-110 group";
+    a.title = title;
+    a.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 text-white/70 group-hover:text-white"></i>`;
+    privacyShortcuts.appendChild(a);
+  });
 }
 
 function hidePrivacyScreen() {
