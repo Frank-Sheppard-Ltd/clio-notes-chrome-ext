@@ -212,7 +212,7 @@ const state = {
   privacyPassword: "",
   privacyLinks: "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com",
   privacyTimezone: "auto",
-  privacyActive: false,
+  privacyActive: true,
   lastActivity: Date.now()
 };
 
@@ -3019,6 +3019,12 @@ async function initializePrivacyScreen() {
   // Always open with lock screen turned on if enabled
   if (state.privacyEnabled) {
     showPrivacyScreen();
+  } else {
+    // Instantly hide without animation
+    state.privacyActive = false;
+    privacyScreen.classList.remove("opacity-100");
+    privacyScreen.classList.add("pointer-events-none");
+    privacyScreen.hidden = true;
   }
 }
 
