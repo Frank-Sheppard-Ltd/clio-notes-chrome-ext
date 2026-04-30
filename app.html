@@ -298,6 +298,9 @@
             <button id="privacy-hub-ai-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white/40 hover:text-white rounded-2xl transition-all hover:bg-white/5">
               <i data-lucide="message-square" class="w-4 h-4"></i> AI Assistant
             </button>
+            <button id="privacy-hub-note-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white/40 hover:text-white rounded-2xl transition-all hover:bg-white/5">
+              <i data-lucide="file-plus" class="w-4 h-4"></i> Quick Note
+            </button>
           </div>
           
           <!-- Hub Content -->
@@ -323,6 +326,17 @@
                   <i data-lucide="send" class="w-5 h-5"></i>
                 </button>
               </form>
+            </div>
+
+            <!-- Quick Note Pane -->
+            <div id="privacy-hub-note-pane" class="hidden flex flex-col gap-4 text-left">
+              <textarea id="privacy-note-input" rows="6" placeholder="Start typing your quick note..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-amber-500/50 transition-all resize-none custom-scrollbar"></textarea>
+              <div class="flex items-center justify-between">
+                <p class="text-[10px] text-white/40 italic">Note will be saved to your first library root.</p>
+                <button id="privacy-note-save-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                  <i data-lucide="save" class="w-4 h-4"></i> Save Note
+                </button>
+              </div>
             </div>
           </div>
         </div>

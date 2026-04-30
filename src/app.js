@@ -132,8 +132,12 @@ const privacySearchForm = document.getElementById("privacy-search-form");
 const privacySearchInput = document.getElementById("privacy-search-input");
 const privacyHubSearchTab = document.getElementById("privacy-hub-search-tab");
 const privacyHubAiTab = document.getElementById("privacy-hub-ai-tab");
+const privacyHubNoteTab = document.getElementById("privacy-hub-note-tab");
 const privacyHubSearchPane = document.getElementById("privacy-hub-search-pane");
 const privacyHubAiPane = document.getElementById("privacy-hub-ai-pane");
+const privacyHubNotePane = document.getElementById("privacy-hub-note-pane");
+const privacyNoteInput = document.getElementById("privacy-note-input");
+const privacyNoteSaveBtn = document.getElementById("privacy-note-save-btn");
 const privacyAiForm = document.getElementById("privacy-ai-form");
 const privacyAiInput = document.getElementById("privacy-ai-input");
 const privacyAiMessages = document.getElementById("privacy-ai-messages");
@@ -2919,26 +2923,68 @@ async function initializePrivacyScreen() {
 
   // Hub Tab Switching
   const switchPrivacyTab = (tab) => {
+    // Reset all tabs and panes
+    [privacyHubSearchTab, privacyHubAiTab, privacyHubNoteTab].forEach(t => {
+      if (!t) return;
+      t.classList.remove("bg-white/10", "shadow-lg");
+      t.classList.add("text-white/40", "hover:bg-white/5");
+    });
+    [privacyHubSearchPane, privacyHubAiPane, privacyHubNotePane].forEach(p => p?.classList.add("hidden"));
+
     if (tab === "search") {
       privacyHubSearchTab.classList.add("bg-white/10", "shadow-lg");
       privacyHubSearchTab.classList.remove("text-white/40", "hover:bg-white/5");
-      privacyHubAiTab.classList.remove("bg-white/10", "shadow-lg");
-      privacyHubAiTab.classList.add("text-white/40", "hover:bg-white/5");
       privacyHubSearchPane.classList.remove("hidden");
-      privacyHubAiPane.classList.add("hidden");
-    } else {
+    } else if (tab === "ai") {
       privacyHubAiTab.classList.add("bg-white/10", "shadow-lg");
       privacyHubAiTab.classList.remove("text-white/40", "hover:bg-white/5");
-      privacyHubSearchTab.classList.remove("bg-white/10", "shadow-lg");
-      privacyHubSearchTab.classList.add("text-white/40", "hover:bg-white/5");
       privacyHubAiPane.classList.remove("hidden");
-      privacyHubSearchPane.classList.add("hidden");
+    } else if (tab === "note") {
+      privacyHubNoteTab.classList.add("bg-white/10", "shadow-lg");
+      privacyHubNoteTab.classList.remove("text-white/40", "hover:bg-white/5");
+      privacyHubNotePane.classList.remove("hidden");
+      privacyNoteInput.focus();
     }
     createIcons({ icons, root: privacyScreen });
   };
 
   privacyHubSearchTab?.addEventListener("click", () => switchPrivacyTab("search"));
   privacyHubAiTab?.addEventListener("click", () => switchPrivacyTab("ai"));
+  privacyHubNoteTab?.addEventListener("click", () => switchPrivacyTab("note"));
+
+  // Quick Note Saving
+  privacyNoteSaveBtn?.addEventListener("click", async () => {
+    const text = privacyNoteInput.value.trim();
+    if (!text) return;
+
+    if (state.libraryFolders.length === 0) {
+      alert("No library folders found. Please add a folder in settings first.");
+      return;
+    }
+
+    try {
+      const rootFolder = state.libraryFolders[0].handle;
+      const date = new Date().toISOString().split('T')[0];
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).replace(':', '-').replace(/ /g, '');
+      const filename = `Quick Note ${date} ${time}.md`;
+      
+      const fileHandle = await rootFolder.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(text);
+      await writable.close();
+
+      privacyNoteInput.value = "";
+      alert(`Note saved as ${filename} in your primary library!`);
+      
+      // Refresh explorer if it's currently showing the primary library
+      if (!explorerSidebar.hidden && state.activeLibraryFolderId === state.libraryFolders[0].id) {
+        void refreshActiveLibrary();
+      }
+    } catch (err) {
+      console.error("Error saving quick note:", err);
+      alert("Failed to save note. Please check permissions.");
+    }
+  });
 
   privacyUnlockBtn?.addEventListener("click", () => {
     if (state.privacyPassword) {
@@ -2969,6 +3015,11 @@ async function initializePrivacyScreen() {
   updatePrivacyClock();
   setInterval(updatePrivacyClock, 1000);
   setInterval(checkPrivacyIdle, 10000); // Check every 10 seconds
+
+  // Always open with lock screen turned on if enabled
+  if (state.privacyEnabled) {
+    showPrivacyScreen();
+  }
 }
 
 function updatePrivacyClock() {
