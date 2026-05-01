@@ -33,6 +33,7 @@ jobs:
         
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
+        if: github.ref_type == 'tag'
         with:
           files: clio-notes-extension.zip
         env:
