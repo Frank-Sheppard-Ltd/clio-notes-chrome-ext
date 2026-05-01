@@ -1,4 +1,4 @@
-# Clio Notes (Chrome Extension)
+# Virgule (Chrome Extension)
 
 Vite-powered Manifest V3 Chrome extension.
 
@@ -15,7 +15,7 @@ A Manifest V3 Chrome extension that opens a dedicated editor page with:
 - Set a markdown file as Front Page for each library folder
 - Soft delete: deleted files/folders are moved to Trash
 - Restore files/folders from Trash using right-click action
-- Settings toggle to set Clio Notes as Chrome homepage/start page
+- Settings toggle to set Virgule as Chrome homepage/start page
 - Can be used as Chrome New Tab page
 
 ## Features
@@ -34,8 +34,8 @@ A Manifest V3 Chrome extension that opens a dedicated editor page with:
 - Front Page is persisted per library folder and auto-opens when that folder is opened.
 - Delete actions are soft-delete: items are moved to `/.clio-trash` in the active library root.
 - Right-click items inside Trash and use `Restore from Trash` to move them back to the library root.
-- In Settings > Chrome Homepage, enable the toggle and click `Apply` to open Chrome startup settings and copy the Clio Notes URL.
-- New tabs open Clio Notes through the extension new-tab override.
+- In Settings > Chrome Homepage, enable the toggle and click `Apply` to open Chrome startup settings and copy the Virgule URL.
+- New tabs open Virgule through the extension new-tab override.
 
 ## Develop and Build
 
