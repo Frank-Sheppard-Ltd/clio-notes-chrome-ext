@@ -72,16 +72,6 @@
               </div>
               
               <div>
-                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Search Engine</label>
-                <select id="privacy-search-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
-                  <option value="https://www.google.com/search?q=">Google</option>
-                  <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
-                  <option value="https://www.bing.com/search?q=">Bing</option>
-                  <option value="https://www.perplexity.ai/search?q=">Perplexity</option>
-                </select>
-              </div>
-
-              <div>
                 <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">AI Engine</label>
                 <select id="privacy-ai-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
                   <option value="https://gemini.google.com/app">Google Gemini</option>
@@ -307,9 +297,29 @@
           <div class="p-6">
             <!-- Search Pane -->
             <div id="privacy-hub-search-pane" class="block">
-              <form id="privacy-search-form" class="flex items-center gap-3">
-                <input id="privacy-search-input" type="text" placeholder="Search the web..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-lg" />
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-500/20">Search</button>
+              <form id="privacy-search-form" class="flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                  <input id="privacy-search-input" type="text" placeholder="Search the web..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-lg" />
+                  <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-500/20">Search</button>
+                </div>
+                <div class="flex items-center justify-center gap-6 text-sm mt-1">
+                  <label class="flex items-center gap-2 cursor-pointer hover:text-white text-white/70 transition-colors">
+                    <input type="checkbox" value="https://www.google.com/search?q=" class="privacy-search-engine-cb w-4 h-4 rounded border-white/20 text-indigo-500 focus:ring-indigo-500 bg-white/10">
+                    <span class="font-medium">Google</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer hover:text-white text-white/70 transition-colors">
+                    <input type="checkbox" value="https://duckduckgo.com/?q=" class="privacy-search-engine-cb w-4 h-4 rounded border-white/20 text-indigo-500 focus:ring-indigo-500 bg-white/10">
+                    <span class="font-medium">DuckDuckGo</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer hover:text-white text-white/70 transition-colors">
+                    <input type="checkbox" value="https://www.bing.com/search?q=" class="privacy-search-engine-cb w-4 h-4 rounded border-white/20 text-indigo-500 focus:ring-indigo-500 bg-white/10">
+                    <span class="font-medium">Bing</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer hover:text-white text-white/70 transition-colors">
+                    <input type="checkbox" value="https://www.perplexity.ai/search?q=" class="privacy-search-engine-cb w-4 h-4 rounded border-white/20 text-indigo-500 focus:ring-indigo-500 bg-white/10">
+                    <span class="font-medium">Perplexity</span>
+                  </label>
+                </div>
               </form>
             </div>
             
