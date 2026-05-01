@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for the release (e.g. v1.0.0)'
+        required: true
+        type: string
 
 jobs:
   build-and-release:
@@ -28,13 +33,12 @@ jobs:
         run: npm run build
         
       - name: Zip Extension
-        working-directory: ./dist
-        run: zip -r ../../clio-notes-extension.zip .
+        run: zip -r virgule.zip dist/
         
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
-        if: github.ref_type == 'tag'
         with:
-          files: clio-notes-extension.zip
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          files: virgule.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
