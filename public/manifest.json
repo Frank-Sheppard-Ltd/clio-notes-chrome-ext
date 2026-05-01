@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Clio Notes",
+  "name": "Virgule",
   "version": "1.0.0",
   "description": "Display, edit, and organize Markdown files with a built-in folder explorer.",
   "action": {
-    "default_title": "Open Clio Notes"
+    "default_title": "Open Virgule"
   },
   "chrome_url_overrides": {
     "newtab": "app.html"

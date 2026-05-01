@@ -4,95 +4,369 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
-    <title>Clio Notes</title>
+    <title>Virgule</title>
   </head>
-  <body>
-    <header class="topbar">
-      <h1>Clio Notes</h1>
-      <div class="actions">
-        <button id="settings-btn" class="button button-primary" type="button">Settings</button>
-        <button id="save-btn" class="button" disabled>Save (Ctrl/Cmd+S)</button>
+  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col m-0 selection:bg-indigo-500/30">
+    <header class="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm z-20 sticky top-0 transition-colors">
+      <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+        <i data-lucide="book-open" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+        Virgule
+      </h1>
+      <div class="flex items-center gap-3">
+        <!-- Header actions removed as they are now in the activity bar and toolbar -->
       </div>
     </header>
 
-    <aside id="settings-panel" class="settings-panel" hidden>
-      <div class="settings-panel-head">
-        <strong>Settings</strong>
-        <button id="close-settings-btn" class="button button-quiet" type="button">Close</button>
+    <aside id="settings-panel" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all" hidden>
+      <div class="w-full max-w-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+        <div class="flex items-center justify-between p-6 pb-4 border-b border-slate-100 dark:border-slate-700/50 shrink-0">
+          <strong class="text-xl flex items-center gap-2">
+            <i data-lucide="settings" class="w-6 h-6 text-indigo-500"></i>
+            Settings
+          </strong>
+          <button id="close-settings-btn" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors" type="button" aria-label="Close settings">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <div class="p-6 pt-4 overflow-y-auto custom-scrollbar flex-1">
+          <section class="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Library</h2>
+              <button id="add-library-folder-btn" class="text-xs px-3 py-2 bg-indigo-600 text-white hover:bg-indigo-500 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20" type="button">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i> Add Folder
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Manage your workspace directories. Folders are persisted across sessions.</p>
+            <ul id="library-list" class="library-list space-y-2"></ul>
+          </section>
+
+          <section class="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Appearance</h2>
+            <div class="flex items-center gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl">
+              <button id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all hover:bg-white dark:hover:bg-slate-700">
+                <i data-lucide="sun" class="w-4 h-4"></i> Light
+              </button>
+              <button id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all hover:bg-white dark:hover:bg-slate-700">
+                <i data-lucide="moon" class="w-4 h-4"></i> Dark
+              </button>
+              <button id="theme-system-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all hover:bg-white dark:hover:bg-slate-700">
+                <i data-lucide="monitor" class="w-4 h-4"></i> System
+              </button>
+            </div>
+          </section>
+
+          <section class="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Privacy Screen</h2>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input id="privacy-enabled-toggle" type="checkbox" class="sr-only peer">
+                <div class="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+            
+            <div class="space-y-5">
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Idle Timeout (minutes)</label>
+                <input id="privacy-timeout-input" type="number" min="1" max="60" value="5" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+              </div>
+              
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Search Engine</label>
+                <select id="privacy-search-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                  <option value="https://www.google.com/search?q=">Google</option>
+                  <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+                  <option value="https://www.bing.com/search?q=">Bing</option>
+                  <option value="https://www.perplexity.ai/search?q=">Perplexity</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">AI Engine</label>
+                <select id="privacy-ai-engine" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                  <option value="https://gemini.google.com/app">Google Gemini</option>
+                  <option value="https://chatgpt.com">ChatGPT</option>
+                  <option value="https://claude.ai">Claude</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Timezone</label>
+                <select id="privacy-timezone-select" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none">
+                  <option value="auto">System Default</option>
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">New York (EST/EDT)</option>
+                  <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+                  <option value="Europe/London">London (GMT/BST)</option>
+                  <option value="Europe/Paris">Paris (CET/CEST)</option>
+                  <option value="Asia/Tokyo">Tokyo (JST)</option>
+                  <option value="Asia/Dubai">Dubai (GST)</option>
+                  <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Password Protection</label>
+                <input id="privacy-password-setup" type="password" placeholder="Leave empty for no password" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tight">Quick Links</label>
+                <textarea id="privacy-links-setup" rows="4" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none resize-none custom-scrollbar" placeholder="https://github.com&#10;https://gmail.com"></textarea>
+                <p class="mt-2 text-[10px] text-slate-400 italic">Enter one URL per line. Icons are matched automatically.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Chrome Homepage</h2>
+              <button id="apply-homepage-btn" class="text-xs px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg font-bold transition-all" type="button">Apply</button>
+            </div>
+            <label class="flex items-center gap-3 text-sm cursor-pointer select-none mb-3" for="homepage-toggle">
+              <input id="homepage-toggle" type="checkbox" class="w-4.5 h-4.5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+              <span class="font-medium text-slate-600 dark:text-slate-300">Set as Chrome homepage</span>
+            </label>
+            <p class="text-xs text-slate-400 leading-relaxed mb-3">Confirmation required. Apply opens settings and copies the URL.</p>
+            <div class="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+              <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Extension URL</p>
+              <code id="homepage-url" class="text-xs text-indigo-600 dark:text-indigo-400 break-all select-all font-mono"></code>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <section class="settings-section">
-        <div class="settings-section-head">
-          <h2>Library</h2>
-          <button id="add-library-folder-btn" class="button button-quiet" type="button">Add Folder</button>
-        </div>
-        <p class="muted">Folders are persisted and can be reopened later.</p>
-        <ul id="library-list" class="library-list"></ul>
-      </section>
-
-      <section class="settings-section">
-        <div class="settings-section-head">
-          <h2>Chrome Homepage</h2>
-          <button id="apply-homepage-btn" class="button button-quiet" type="button">Apply</button>
-        </div>
-        <label class="settings-toggle" for="homepage-toggle">
-          <input id="homepage-toggle" type="checkbox" />
-          <span>Set Clio Notes as Chrome homepage/start page</span>
-        </label>
-        <p class="muted settings-help">Chrome requires confirmation. Apply opens startup settings and copies the Clio Notes URL.</p>
-        <p class="muted settings-url">Clio Notes URL: <span id="homepage-url"></span></p>
-      </section>
     </aside>
 
-    <main class="workspace">
-      <aside class="explorer" aria-label="File and folder explorer">
-        <div class="explorer-head">
-          <div class="explorer-head-top">
-            <h2>Explorer</h2>
-          </div>
-          <span id="folder-name" class="folder-name">No folder selected</span>
+    <main id="main-content" class="grid grid-cols-1 lg:grid-cols-[48px_320px_1fr] flex-1 min-h-0">
+      <nav class="activity-bar flex flex-col items-center py-4 bg-slate-100 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 shrink-0 z-30">
+        <div class="flex flex-col items-center gap-4 flex-1">
+          <button id="activity-explorer-btn" class="p-2 text-indigo-600 dark:text-indigo-400 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm" title="Explorer">
+            <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+          </button>
+          <button id="activity-search-btn" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-800" title="Search">
+            <i data-lucide="search" class="w-6 h-6"></i>
+          </button>
         </div>
-        <div id="tree-root" class="tree-root">
-          <p class="muted">Choose a folder to browse Markdown files.</p>
+        <div class="flex flex-col items-center gap-2">
+          <button id="privacy-lock-trigger" class="p-2 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-800" title="Lock Screen">
+            <i data-lucide="lock" class="w-6 h-6"></i>
+          </button>
+          <button id="settings-btn" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-800" title="Settings">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+          </button>
+        </div>
+      </nav>
+      <aside id="explorer-sidebar" class="explorer flex flex-col border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 backdrop-blur-sm lg:h-[calc(100vh-73px)] max-lg:max-h-[30vh] overflow-hidden" aria-label="File and folder explorer">
+        <div class="explorer-head p-4 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+          <div class="flex items-center gap-2 mb-1">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-400"></i>
+            <h2 class="text-sm font-bold m-0 tracking-wide text-slate-700 dark:text-slate-300">Explorer</h2>
+          </div>
+          <span id="folder-name" class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate block">No folder selected</span>
+        </div>
+        <div id="tree-root" class="tree-root overflow-auto p-4 flex-1">
+          <p class="text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center h-full text-center gap-3 mt-10">
+            <i data-lucide="folder-search" class="w-10 h-10 text-slate-300 dark:text-slate-600"></i>
+            <span>Choose a folder to browse Markdown files.</span>
+          </p>
         </div>
       </aside>
 
-      <section class="editor-area" aria-label="Markdown editor and preview">
-        <div class="file-header">
-          <strong id="file-path">No file opened</strong>
-          <div class="file-header-actions">
-            <span id="status" class="status">Ready</span>
-            <button id="insert-image-btn" class="button button-quiet" type="button" disabled title="Insert image into note (or drag &amp; drop an image onto the editor)">&#128247; Insert Image</button>
-            <button id="toggle-preview-btn" class="button button-quiet" type="button" aria-pressed="false">Hide Preview</button>
+      <aside id="search-sidebar" class="search-sidebar flex flex-col border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 backdrop-blur-sm lg:h-[calc(100vh-73px)] max-lg:max-h-[30vh] overflow-hidden" hidden aria-label="Global search">
+        <div class="p-4 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+            <h2 class="text-sm font-bold m-0 tracking-wide text-slate-700 dark:text-slate-300">Search</h2>
+          </div>
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input id="global-search-input" type="text" placeholder="Search notes..." class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+          </div>
+        </div>
+        <div id="search-results" class="overflow-auto p-2 flex-1 custom-scrollbar">
+          <div class="flex flex-col items-center justify-center h-full text-center gap-3 text-slate-400 p-4">
+            <i data-lucide="search" class="w-10 h-10 opacity-20"></i>
+            <p class="text-xs">Search across all your library folders for filenames and content.</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="flex flex-col p-4 lg:p-6 gap-4 lg:gap-6 min-h-0 lg:h-[calc(100vh-73px)]" aria-label="Markdown editor and preview">
+        <div id="tab-bar" class="tab-bar bg-white/40 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-700/50 shrink-0" hidden></div>
+
+        <div class="editor-toolbar flex flex-wrap items-center gap-1 p-1.5 bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm backdrop-blur-md shrink-0">
+          <div class="flex items-center gap-1 px-2 border-r border-slate-200 dark:border-slate-800 mr-1">
+            <button id="toolbar-new-file-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="New File" disabled>
+              <i data-lucide="file-plus" class="w-4 h-4"></i>
+            </button>
+            <button id="toolbar-save-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="Save (Ctrl+S)" disabled>
+              <i data-lucide="save" class="w-4 h-4"></i>
+            </button>
+            <button id="toolbar-insert-image-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="Insert Image" disabled>
+              <i data-lucide="image-plus" class="w-4 h-4"></i>
+            </button>
+            <button id="toolbar-toggle-preview-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="Toggle Preview">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          
+          <div class="flex items-center gap-1 px-2 border-r border-slate-200 dark:border-slate-800 mr-1">
+            <button id="toolbar-bold-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="Bold">
+              <i data-lucide="bold" class="w-4 h-4"></i>
+            </button>
+            <button id="toolbar-italic-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="Italic">
+              <i data-lucide="italic" class="w-4 h-4"></i>
+            </button>
+            <button id="toolbar-strikethrough-btn" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors" title="Strikethrough">
+              <i data-lucide="strikethrough" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="flex-1 flex items-center justify-end px-3 gap-3 overflow-hidden">
+             <span id="status" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">Ready</span>
+             <div class="w-px h-3 bg-slate-200 dark:bg-slate-800"></div>
+             <div id="file-path" class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate select-all">No file opened</div>
           </div>
         </div>
 
-        <div class="panes">
-          <label class="pane" id="editor-pane">
-            <span>Editor</span>
-            <div class="editor-drop-zone" id="editor-drop-zone">
-              <textarea id="editor" spellcheck="false" placeholder="Open a Markdown file from the explorer..."></textarea>
+        <div class="panes flex-1 min-h-0">
+          <label class="pane flex-1 min-h-0 relative" id="editor-pane">
+            <span class="absolute top-3 right-5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 pointer-events-none z-10">Editor</span>
+            <div class="editor-drop-zone h-full" id="editor-drop-zone">
+              <textarea id="editor" spellcheck="false" placeholder="Open a Markdown file from the explorer..." class="w-full h-full resize-none p-5 pt-8 font-mono text-[14px] leading-relaxed text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow"></textarea>
               <div class="editor-drop-overlay" id="editor-drop-overlay" aria-hidden="true">
-                <span class="editor-drop-hint">&#128247; Drop image here</span>
+                <span class="editor-drop-hint">
+                  <i data-lucide="image" class="w-5 h-5"></i>
+                  Drop image here
+                </span>
               </div>
             </div>
           </label>
 
-          <section class="pane preview-pane" aria-label="Markdown preview">
-            <span>Preview</span>
-            <article id="preview" class="preview-content"></article>
+          <section class="pane preview-pane flex flex-col flex-1 min-h-0 relative" aria-label="Markdown preview">
+            <span class="absolute top-3 right-5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 pointer-events-none z-10">Preview</span>
+            <article id="preview" class="preview-content pt-8 text-slate-800 dark:text-slate-200 prose prose-slate dark:prose-invert max-w-none h-full"></article>
           </section>
         </div>
       </section>
     </main>
 
-    <div id="context-menu" class="context-menu" hidden>
-      <button type="button" class="context-menu-item" data-action="new-file">New File</button>
-      <button type="button" class="context-menu-item" data-action="new-folder">New Folder</button>
-      <button type="button" class="context-menu-item" data-action="delete-file">Delete File</button>
-      <button type="button" class="context-menu-item" data-action="delete-folder">Delete Folder</button>
-      <button type="button" class="context-menu-item" data-action="set-front-page">Set as Front Page</button>
-      <button type="button" class="context-menu-item" data-action="restore-from-trash">Restore from Trash</button>
+    <div id="context-menu" class="fixed z-50 flex flex-col gap-1 min-w-[180px] p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl" hidden>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-md transition-colors flex items-center gap-2" data-action="new-file">
+        <i data-lucide="file-plus" class="w-4 h-4 text-slate-400"></i> New File
+      </button>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-md transition-colors flex items-center gap-2" data-action="new-folder">
+        <i data-lucide="folder-plus" class="w-4 h-4 text-slate-400"></i> New Folder
+      </button>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-md transition-colors flex items-center gap-2" data-action="rename">
+        <i data-lucide="edit-3" class="w-4 h-4 text-slate-400"></i> Rename
+      </button>
+      <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors flex items-center gap-2" data-action="delete-file">
+        <i data-lucide="trash-2" class="w-4 h-4"></i> Delete File
+      </button>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors flex items-center gap-2" data-action="delete-folder">
+        <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Folder
+      </button>
+      <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-md transition-colors flex items-center gap-2" data-action="set-front-page">
+        <i data-lucide="home" class="w-4 h-4 text-slate-400"></i> Set as Front Page
+      </button>
+      <button type="button" class="context-menu-item w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-md transition-colors flex items-center gap-2" data-action="restore-from-trash">
+        <i data-lucide="archive-restore" class="w-4 h-4 text-slate-400"></i> Restore from Trash
+      </button>
+    </div>
+
+    <div id="privacy-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 transition-all duration-150 opacity-100">
+      <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-3xl"></div>
+      <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-transparent to-emerald-500/10"></div>
+      
+      <div class="relative w-full max-w-2xl flex flex-col items-center gap-10 text-center">
+        <!-- Time/Date Info -->
+        <div class="flex flex-col gap-2">
+          <div id="privacy-clock" class="text-7xl font-light tracking-tighter text-white drop-shadow-2xl">00:00</div>
+          <div id="privacy-date" class="text-sm font-medium uppercase tracking-[0.3em] text-indigo-200/60">Monday, January 1</div>
+        </div>
+
+        <!-- Privacy Hub (Search & AI) -->
+        <div class="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+          <!-- Hub Tabs -->
+          <div class="flex items-center border-b border-white/10 bg-white/5 p-1.5">
+            <button id="privacy-hub-search-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white rounded-2xl transition-all bg-white/10 shadow-lg">
+              <i data-lucide="search" class="w-4 h-4"></i> Web Search
+            </button>
+            <button id="privacy-hub-ai-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white/40 hover:text-white rounded-2xl transition-all hover:bg-white/5">
+              <i data-lucide="message-square" class="w-4 h-4"></i> AI Assistant
+            </button>
+            <button id="privacy-hub-note-tab" class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-white/40 hover:text-white rounded-2xl transition-all hover:bg-white/5">
+              <i data-lucide="file-plus" class="w-4 h-4"></i> Quick Note
+            </button>
+          </div>
+          
+          <!-- Hub Content -->
+          <div class="p-6">
+            <!-- Search Pane -->
+            <div id="privacy-hub-search-pane" class="block">
+              <form id="privacy-search-form" class="flex items-center gap-3">
+                <input id="privacy-search-input" type="text" placeholder="Search the web..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-lg" />
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-500/20">Search</button>
+              </form>
+            </div>
+            
+            <!-- AI Pane -->
+            <div id="privacy-hub-ai-pane" class="hidden flex flex-col gap-4">
+              <div id="privacy-ai-messages" class="h-64 overflow-y-auto custom-scrollbar flex flex-col gap-3 p-2 text-left">
+                <div class="bg-white/5 text-white/60 text-xs p-3 rounded-2xl rounded-tl-none self-start max-w-[85%] border border-white/5 leading-relaxed">
+                  Hi! I'm your Privacy Assistant. How can I help you today?
+                </div>
+              </div>
+              <form id="privacy-ai-form" class="flex items-center gap-2 mt-2">
+                <input id="privacy-ai-input" type="text" placeholder="Type a message..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all" />
+                <button type="submit" class="p-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+                  <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+              </form>
+            </div>
+
+            <!-- Quick Note Pane -->
+            <div id="privacy-hub-note-pane" class="hidden flex flex-col gap-4 text-left">
+              <textarea id="privacy-note-input" rows="6" placeholder="Start typing your quick note..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 outline-none focus:ring-2 focus:ring-amber-500/50 transition-all resize-none custom-scrollbar"></textarea>
+              <div class="flex items-center justify-between">
+                <p class="text-[10px] text-white/40 italic">Note will be saved to your first library root.</p>
+                <button id="privacy-note-save-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                  <i data-lucide="save" class="w-4 h-4"></i> Save Note
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shortcuts -->
+        <div id="privacy-shortcuts" class="flex flex-wrap items-center justify-center gap-6"></div>
+      </div>
+
+      <div id="privacy-auth-container" class="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-2xl transition-all duration-500 opacity-0 pointer-events-none" hidden>
+        <div class="w-full max-w-xs flex flex-col items-center gap-6">
+          <div class="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <i data-lucide="lock" class="w-8 h-8"></i>
+          </div>
+          <div class="text-center">
+            <h3 class="text-xl font-bold text-white mb-1">Enter Password</h3>
+            <p class="text-xs text-white/50 uppercase tracking-widest">Required to unlock notes</p>
+          </div>
+          <form id="privacy-auth-form" class="w-full flex flex-col gap-3">
+            <input id="privacy-auth-input" type="password" placeholder="••••••••" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-center text-white placeholder:text-white/20 focus:border-indigo-500 outline-none transition-all" />
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20">Unlock</button>
+            <button id="privacy-auth-cancel" type="button" class="text-xs text-white/30 hover:text-white transition-colors">Go Back</button>
+          </form>
+          <p id="privacy-auth-error" class="text-xs text-red-400 font-medium" hidden>Incorrect password. Try again.</p>
+        </div>
+      </div>
+
+      <button id="privacy-unlock-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/70 hover:text-white text-sm font-medium transition-all backdrop-blur-xl">
+        <i data-lucide="lock-open" class="w-4 h-4"></i>
+        Click to Unlock
+      </button>
     </div>
 
     <script src="/src/main.js" type="module"></script>
