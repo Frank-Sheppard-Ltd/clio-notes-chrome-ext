@@ -3047,6 +3047,7 @@ async function initializePrivacyScreen() {
 
   // Always open with lock screen turned on if enabled
   if (state.privacyEnabled) {
+    state.privacyActive = false;
     showPrivacyScreen();
   } else {
     // Instantly hide without animation
