@@ -32,7 +32,7 @@ jobs:
         run: zip -r ../../clio-notes-extension.zip .
         
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: clio-notes-extension.zip
         env:
