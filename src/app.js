@@ -41,7 +41,8 @@ import {
   Minus,
   Lock,
   Globe,
-  ExternalLink
+  ExternalLink,
+  ChevronDown
 } from 'lucide';
 
 const icons = {
@@ -86,7 +87,8 @@ const icons = {
   Minus,
   Lock,
   Globe,
-  ExternalLink
+  ExternalLink,
+  ChevronDown
 };
 
 const settingsBtn = document.getElementById("settings-btn");
@@ -144,7 +146,7 @@ const privacyAiMessages = document.getElementById("privacy-ai-messages");
 const privacyUnlockBtn = document.getElementById("privacy-unlock-btn");
 const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
 const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
-const privacySearchSelect = document.getElementById("privacy-search-engine");
+const privacySearchEngineCbs = document.querySelectorAll(".privacy-search-engine-cb");
 const privacyAiSelect = document.getElementById("privacy-ai-engine");
 const privacyPasswordSetup = document.getElementById("privacy-password-setup");
 const privacyLinksSetup = document.getElementById("privacy-links-setup");
@@ -207,7 +209,7 @@ const state = {
   theme: "system",
   privacyEnabled: false,
   privacyTimeout: 5,
-  privacySearchEngine: "https://www.google.com/search?q=",
+  privacySearchEngines: ["https://www.google.com/search?q="],
   privacyAiEngine: "https://gemini.google.com/app",
   privacyPassword: "",
   privacyLinks: "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com",
@@ -2837,7 +2839,12 @@ async function initializePrivacyScreen() {
   // Load settings
   state.privacyEnabled = localStorage.getItem(PRIVACY_ENABLED_KEY) === "true";
   state.privacyTimeout = parseInt(localStorage.getItem(PRIVACY_TIMEOUT_KEY) || "5", 10);
-  state.privacySearchEngine = localStorage.getItem(PRIVACY_SEARCH_KEY) || "https://www.google.com/search?q=";
+  try {
+    const stored = localStorage.getItem(PRIVACY_SEARCH_KEY);
+    state.privacySearchEngines = stored ? JSON.parse(stored) : ["https://www.google.com/search?q="];
+  } catch (e) {
+    state.privacySearchEngines = ["https://www.google.com/search?q="];
+  }
   state.privacyAiEngine = localStorage.getItem(PRIVACY_AI_KEY) || "https://gemini.google.com/app";
   state.privacyPassword = localStorage.getItem(PRIVACY_PASSWORD_KEY) || "";
   state.privacyLinks = localStorage.getItem(PRIVACY_LINKS_KEY) || "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com";
@@ -2846,7 +2853,11 @@ async function initializePrivacyScreen() {
   // Update UI settings
   if (privacyEnabledToggle) privacyEnabledToggle.checked = state.privacyEnabled;
   if (privacyTimeoutInput) privacyTimeoutInput.value = state.privacyTimeout;
-  if (privacySearchSelect) privacySearchSelect.value = state.privacySearchEngine;
+  if (privacySearchEngineCbs.length) {
+    privacySearchEngineCbs.forEach(cb => {
+      cb.checked = state.privacySearchEngines.includes(cb.value);
+    });
+  }
   if (privacyAiSelect) privacyAiSelect.value = state.privacyAiEngine;
   if (privacyPasswordSetup) privacyPasswordSetup.value = state.privacyPassword;
   if (privacyLinksSetup) privacyLinksSetup.value = state.privacyLinks;
@@ -2861,10 +2872,24 @@ async function initializePrivacyScreen() {
     state.privacyTimeout = parseInt(e.target.value, 10);
     localStorage.setItem(PRIVACY_TIMEOUT_KEY, state.privacyTimeout);
   });
-  privacySearchSelect?.addEventListener("change", (e) => {
-    state.privacySearchEngine = e.target.value;
-    localStorage.setItem(PRIVACY_SEARCH_KEY, state.privacySearchEngine);
-  });
+  
+  if (privacySearchEngineCbs.length) {
+    privacySearchEngineCbs.forEach(cb => {
+      cb.addEventListener("change", () => {
+        const selected = Array.from(privacySearchEngineCbs)
+          .filter(c => c.checked)
+          .map(c => c.value);
+        
+        if (selected.length === 0) {
+          cb.checked = true;
+          return;
+        }
+        
+        state.privacySearchEngines = selected;
+        localStorage.setItem(PRIVACY_SEARCH_KEY, JSON.stringify(state.privacySearchEngines));
+      });
+    });
+  }
   privacyAiSelect?.addEventListener("change", (e) => {
     state.privacyAiEngine = e.target.value;
     localStorage.setItem(PRIVACY_AI_KEY, state.privacyAiEngine);
@@ -2897,8 +2922,10 @@ async function initializePrivacyScreen() {
   privacySearchForm?.addEventListener("submit", (e) => {
     e.preventDefault();
     const query = privacySearchInput.value.trim();
-    if (query) {
-      window.open(state.privacySearchEngine + encodeURIComponent(query), "_blank");
+    if (query && state.privacySearchEngines.length > 0) {
+      state.privacySearchEngines.forEach(engine => {
+        window.open(engine + encodeURIComponent(query), "_blank");
+      });
       privacySearchInput.value = "";
     }
   });
