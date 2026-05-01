@@ -20,15 +20,15 @@ jobs:
           node-version: 20
           
       - name: Install Dependencies
-        working-directory: ./develop
+        working-directory: .
         run: npm ci || npm install
         
       - name: Build Extension
-        working-directory: ./develop
+        working-directory: .
         run: npm run build
         
       - name: Zip Extension
-        working-directory: ./develop/dist
+        working-directory: ./dist
         run: zip -r ../../clio-notes-extension.zip .
         
       - name: Create GitHub Release
