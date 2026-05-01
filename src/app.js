@@ -1,3 +1,96 @@
+import { 
+  createIcons, 
+  BookOpen, 
+  Save, 
+  SlidersHorizontal, 
+  Settings, 
+  FolderPlus, 
+  X, 
+  LayoutDashboard, 
+  FolderSearch, 
+  FileText, 
+  ImagePlus, 
+  Columns, 
+  Image, 
+  FilePlus, 
+  Edit3, 
+  Trash2, 
+  Home, 
+  ArchiveRestore, 
+  Menu, 
+  Sidebar, 
+  ShieldAlert, 
+  RefreshCw, 
+  Folder, 
+  File,
+  Search,
+  Sun,
+  Moon,
+  Monitor,
+  Bold,
+  Italic,
+  Strikethrough,
+  Eye,
+  Code,
+  Mail,
+  Play,
+  MessageSquare,
+  Library,
+  LockOpen,
+  Send,
+  Minus,
+  Lock,
+  Globe,
+  ExternalLink,
+  ChevronDown
+} from 'lucide';
+
+const icons = {
+  BookOpen,
+  Save,
+  SlidersHorizontal,
+  Settings,
+  FolderPlus,
+  X,
+  LayoutDashboard,
+  FolderSearch,
+  FileText,
+  ImagePlus,
+  Columns,
+  Image,
+  FilePlus,
+  Edit3,
+  Trash2,
+  Home,
+  ArchiveRestore,
+  Menu,
+  LayoutSidebar: Sidebar,
+  ShieldAlert,
+  RefreshCw,
+  Folder,
+  File,
+  Search,
+  Sun,
+  Moon,
+  Monitor,
+  Bold,
+  Italic,
+  Strikethrough,
+  Eye,
+  Code,
+  Mail,
+  Play,
+  MessageSquare,
+  Library,
+  LockOpen,
+  Send,
+  Minus,
+  Lock,
+  Globe,
+  ExternalLink,
+  ChevronDown
+};
+
 const settingsBtn = document.getElementById("settings-btn");
 const settingsPanel = document.getElementById("settings-panel");
 const closeSettingsBtn = document.getElementById("close-settings-btn");
@@ -5,22 +98,69 @@ const addLibraryFolderBtn = document.getElementById("add-library-folder-btn");
 const libraryList = document.getElementById("library-list");
 const homepageToggle = document.getElementById("homepage-toggle");
 const applyHomepageBtn = document.getElementById("apply-homepage-btn");
+const themeLightBtn = document.getElementById("theme-light-btn");
+const themeDarkBtn = document.getElementById("theme-dark-btn");
+const themeSystemBtn = document.getElementById("theme-system-btn");
 const homepageUrlLabel = document.getElementById("homepage-url");
-const saveBtn = document.getElementById("save-btn");
-const insertImageBtn = document.getElementById("insert-image-btn");
+const saveBtn = document.getElementById("toolbar-save-btn");
+const newFileBtn = document.getElementById("toolbar-new-file-btn");
+const insertImageBtn = document.getElementById("toolbar-insert-image-btn");
+const togglePreviewBtn = document.getElementById("toolbar-toggle-preview-btn");
+const boldBtn = document.getElementById("toolbar-bold-btn");
+const italicBtn = document.getElementById("toolbar-italic-btn");
+const strikethroughBtn = document.getElementById("toolbar-strikethrough-btn");
 const explorer = document.querySelector(".explorer");
 const treeRoot = document.getElementById("tree-root");
 const folderName = document.getElementById("folder-name");
 const explorerHead = document.querySelector(".explorer-head");
 const filePathLabel = document.getElementById("file-path");
 const statusLabel = document.getElementById("status");
-const togglePreviewBtn = document.getElementById("toggle-preview-btn");
 const editor = document.getElementById("editor");
 const editorDropZone = document.getElementById("editor-drop-zone");
 const preview = document.getElementById("preview");
 const panes = document.querySelector(".panes");
+const previewPane = document.querySelector(".preview-pane");
 const contextMenu = document.getElementById("context-menu");
 const contextMenuItems = Array.from(contextMenu.querySelectorAll(".context-menu-item"));
+const activityExplorerBtn = document.getElementById("activity-explorer-btn");
+const activitySearchBtn = document.getElementById("activity-search-btn");
+const mainContent = document.getElementById("main-content");
+const tabBar = document.getElementById("tab-bar");
+const privacyScreen = document.getElementById("privacy-screen");
+const privacyClock = document.getElementById("privacy-clock");
+const privacyDate = document.getElementById("privacy-date");
+const privacyShortcuts = document.getElementById("privacy-shortcuts");
+const privacySearchForm = document.getElementById("privacy-search-form");
+const privacySearchInput = document.getElementById("privacy-search-input");
+const privacyHubSearchTab = document.getElementById("privacy-hub-search-tab");
+const privacyHubAiTab = document.getElementById("privacy-hub-ai-tab");
+const privacyHubNoteTab = document.getElementById("privacy-hub-note-tab");
+const privacyHubSearchPane = document.getElementById("privacy-hub-search-pane");
+const privacyHubAiPane = document.getElementById("privacy-hub-ai-pane");
+const privacyHubNotePane = document.getElementById("privacy-hub-note-pane");
+const privacyNoteInput = document.getElementById("privacy-note-input");
+const privacyNoteSaveBtn = document.getElementById("privacy-note-save-btn");
+const privacyAiForm = document.getElementById("privacy-ai-form");
+const privacyAiInput = document.getElementById("privacy-ai-input");
+const privacyAiMessages = document.getElementById("privacy-ai-messages");
+const privacyUnlockBtn = document.getElementById("privacy-unlock-btn");
+const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
+const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
+const privacySearchEngineCbs = document.querySelectorAll(".privacy-search-engine-cb");
+const privacyAiSelect = document.getElementById("privacy-ai-engine");
+const privacyPasswordSetup = document.getElementById("privacy-password-setup");
+const privacyLinksSetup = document.getElementById("privacy-links-setup");
+const privacyTimezoneSelect = document.getElementById("privacy-timezone-select");
+const privacyLockTrigger = document.getElementById("privacy-lock-trigger");
+const privacyAuthContainer = document.getElementById("privacy-auth-container");
+const privacyAuthForm = document.getElementById("privacy-auth-form");
+const privacyAuthInput = document.getElementById("privacy-auth-input");
+const privacyAuthError = document.getElementById("privacy-auth-error");
+const privacyAuthCancel = document.getElementById("privacy-auth-cancel");
+const explorerSidebar = document.getElementById("explorer-sidebar");
+const searchSidebar = document.getElementById("search-sidebar");
+const globalSearchInput = document.getElementById("global-search-input");
+const searchResultsContainer = document.getElementById("search-results");
 
 const LIBRARY_DB_NAME = "clio-notes-db";
 const LIBRARY_DB_VERSION = 1;
@@ -29,6 +169,18 @@ const ACTIVE_LIBRARY_KEY = "clio-notes-active-library-folder-id";
 const FRONT_PAGE_MAP_KEY = "clio-notes-front-page-by-folder";
 const TRASH_DIR_NAME = ".clio-trash";
 const HOMEPAGE_ENABLED_KEY = "clio-notes-homepage-enabled";
+const EXPANDED_FOLDERS_KEY = "clio-notes-expanded-folders";
+const EXPLORER_VISIBLE_KEY = "clio-notes-explorer-visible";
+const OPEN_TABS_KEY = "clio-notes-open-tabs";
+const ACTIVE_TAB_KEY = "clio-notes-active-tab";
+const THEME_KEY = "clio-notes-theme";
+const PRIVACY_ENABLED_KEY = "clio-notes-privacy-enabled";
+const PRIVACY_TIMEOUT_KEY = "clio-notes-privacy-timeout";
+const PRIVACY_SEARCH_KEY = "clio-notes-privacy-search";
+const PRIVACY_AI_KEY = "clio-notes-privacy-ai";
+const PRIVACY_PASSWORD_KEY = "clio-notes-privacy-password";
+const PRIVACY_LINKS_KEY = "clio-notes-privacy-links";
+const PRIVACY_TIMEZONE_KEY = "clio-notes-privacy-timezone";
 
 const state = {
   libraryFolders: [],
@@ -39,7 +191,7 @@ const state = {
   currentFileButton: null,
   dragSourcePath: "",
   dragSourceKind: "",
-  previewVisible: true,
+  previewVisible: false,
   explorerSelectionKind: "",
   explorerSelectionPath: "",
   explorerSelectionParentPath: "",
@@ -49,22 +201,193 @@ const state = {
   contextMenuTargetPath: "",
   contextMenuParentPath: "",
   frontPageByFolder: {},
-  imageCache: {}
+  imageCache: {},
+  expandedFolders: new Set(),
+  explorerVisible: true,
+  tabs: [],
+  activeTabId: null,
+  theme: "system",
+  privacyEnabled: false,
+  privacyTimeout: 5,
+  privacySearchEngines: ["https://www.google.com/search?q="],
+  privacyAiEngine: "https://gemini.google.com/app",
+  privacyPassword: "",
+  privacyLinks: "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com",
+  privacyTimezone: "auto",
+  privacyActive: true,
+  lastActivity: Date.now()
 };
 
 settingsBtn.addEventListener("click", toggleSettingsPanel);
 closeSettingsBtn.addEventListener("click", () => setSettingsPanelOpen(false));
+settingsPanel.addEventListener("click", (e) => {
+  if (e.target === settingsPanel) setSettingsPanelOpen(false);
+});
 addLibraryFolderBtn.addEventListener("click", () => {
   void addFolderToLibrary();
 });
+
+void initializePrivacyScreen();
+
+// ─── Sidebar Switching ───────────────────────────────────────────────────────
+
+function setSidebar(tab) {
+  if (tab === "explorer") {
+    explorerSidebar.hidden = false;
+    searchSidebar.hidden = true;
+    activityExplorerBtn.classList.add("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activityExplorerBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    activitySearchBtn.classList.remove("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activitySearchBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+  } else {
+    explorerSidebar.hidden = true;
+    searchSidebar.hidden = false;
+    activitySearchBtn.classList.add("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activitySearchBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    activityExplorerBtn.classList.remove("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
+    activityExplorerBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    globalSearchInput.focus();
+  }
+}
+
+activityExplorerBtn.addEventListener("click", () => setSidebar("explorer"));
+activitySearchBtn.addEventListener("click", () => setSidebar("search"));
+
+// ─── Global Search ───────────────────────────────────────────────────────────
+
+let searchDebounceTimer;
+globalSearchInput.addEventListener("input", (e) => {
+  clearTimeout(searchDebounceTimer);
+  const query = e.target.value.trim().toLowerCase();
+  if (!query) {
+    searchResultsContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center gap-3 text-slate-400 p-4"><i data-lucide="search" class="w-10 h-10 opacity-20"></i><p class="text-xs">Search across all your library folders for filenames and content.</p></div>`;
+    createIcons({ icons, root: searchResultsContainer });
+    return;
+  }
+  searchDebounceTimer = setTimeout(() => performGlobalSearch(query), 300);
+});
+
+async function performGlobalSearch(query) {
+  searchResultsContainer.innerHTML = `<div class="flex items-center justify-center p-8"><div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+  
+  const results = [];
+  
+  for (const lib of state.libraryFolders) {
+    await searchFolderRecursively(lib.handle, lib.name, query, results);
+  }
+  
+  renderSearchResults(results, query);
+}
+
+async function searchFolderRecursively(handle, path, query, results) {
+  for await (const entry of handle.values()) {
+    const currentPath = `${path}/${entry.name}`;
+    if (entry.kind === "directory") {
+      await searchFolderRecursively(entry, currentPath, query, results);
+    } else if (entry.name.toLowerCase().endsWith(".md")) {
+      const isNameMatch = entry.name.toLowerCase().includes(query);
+      let contentMatch = null;
+      
+      try {
+        const file = await entry.getFile();
+        const content = await file.text();
+        const lowerContent = content.toLowerCase();
+        const index = lowerContent.indexOf(query);
+        
+        if (index !== -1) {
+          const start = Math.max(0, index - 40);
+          const end = Math.min(content.length, index + query.length + 40);
+          contentMatch = (start > 0 ? "..." : "") + content.slice(start, end).replace(/\n/g, " ") + (end < content.length ? "..." : "");
+        }
+      } catch (err) {
+        console.error(`Error reading ${currentPath}:`, err);
+      }
+      
+      if (isNameMatch || contentMatch) {
+        results.push({
+          name: entry.name,
+          path: currentPath,
+          handle: entry,
+          contentMatch
+        });
+      }
+    }
+  }
+}
+
+function renderSearchResults(results, query) {
+  if (results.length === 0) {
+    searchResultsContainer.innerHTML = `<div class="p-8 text-center"><p class="text-sm text-slate-500">No results found for "${query}"</p></div>`;
+    return;
+  }
+  
+  searchResultsContainer.innerHTML = "";
+  results.forEach(result => {
+    const item = document.createElement("div");
+    item.className = "p-3 mb-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl hover:border-indigo-500/50 transition-all cursor-pointer group";
+    
+    const highlight = (text, q) => {
+      if (!text) return "";
+      const regex = new RegExp(`(${q})`, "gi");
+      return text.replace(regex, '<mark class="bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded px-0.5">$1</mark>');
+    };
+
+    item.innerHTML = `
+      <div class="flex items-start gap-3">
+        <i data-lucide="file-text" class="w-4 h-4 text-slate-400 mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">${highlight(result.name, query)}</h3>
+          <p class="text-[10px] text-slate-400 truncate mb-1.5">${result.path}</p>
+          ${result.contentMatch ? `<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 italic">${highlight(result.contentMatch, query)}</p>` : ""}
+        </div>
+      </div>
+    `;
+    
+    item.addEventListener("click", async () => {
+      await openFile(result.handle);
+      // Optional: highlight text in editor if it was a content match?
+    });
+    
+    searchResultsContainer.appendChild(item);
+  });
+  
+  createIcons({ icons, root: searchResultsContainer });
+}
 homepageToggle.addEventListener("change", onHomepageToggleChange);
+
+if (themeLightBtn) themeLightBtn.addEventListener("click", () => setTheme("light"));
+if (themeDarkBtn) themeDarkBtn.addEventListener("click", () => setTheme("dark"));
+if (themeSystemBtn) themeSystemBtn.addEventListener("click", () => setTheme("system"));
+
+initializeTheme();
+
 applyHomepageBtn.addEventListener("click", () => {
   void applyHomepageSetting();
 });
 saveBtn.addEventListener("click", saveCurrentFile);
+if (newFileBtn) newFileBtn.addEventListener("click", () => void createMarkdownFile());
 insertImageBtn.addEventListener("click", () => void onInsertImageClick());
 togglePreviewBtn.addEventListener("click", togglePreview);
-editor.addEventListener("input", () => renderPreview(editor.value));
+
+if (boldBtn) boldBtn.addEventListener("click", () => applyFormatting("**", "**"));
+if (italicBtn) italicBtn.addEventListener("click", () => applyFormatting("*", "*"));
+if (strikethroughBtn) strikethroughBtn.addEventListener("click", () => applyFormatting("~~", "~~"));
+if (activityExplorerBtn) {
+  activityExplorerBtn.addEventListener("click", toggleExplorer);
+}
+if (activitySearchBtn) {
+  activitySearchBtn.addEventListener("click", () => {
+    setStatus("Search functionality coming soon!");
+  });
+}
+editor.addEventListener("input", () => {
+  renderPreview(editor.value);
+  const activeTab = state.tabs.find(t => t.path === state.activeTabId);
+  if (activeTab && !activeTab.isDirty) {
+    activeTab.isDirty = true;
+    renderTabs();
+  }
+});
 editorDropZone.addEventListener("dragover", onEditorDragOver);
 editorDropZone.addEventListener("dragleave", onEditorDragLeave);
 editorDropZone.addEventListener("drop", onEditorDrop);
@@ -92,6 +415,12 @@ contextMenuItems.forEach((item) => {
 
 initializeHomepageSettings();
 void initializeLibrary();
+
+const savedExplorerVisible = localStorage.getItem(EXPLORER_VISIBLE_KEY);
+state.explorerVisible = savedExplorerVisible === null ? true : savedExplorerVisible === "true";
+updateExplorerVisibility();
+
+createIcons({ icons });
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
@@ -184,6 +513,9 @@ function onExplorerContextMenu(event) {
   event.preventDefault();
 
   if (folderTarget) {
+    const libraryId = folderTarget.dataset.libraryId;
+    if (libraryId) void switchActiveLibrary(libraryId);
+
     const fullPath = folderTarget.dataset.entryPath || "";
     const relativePath = removeRootPrefix(fullPath);
     const insideTrash = isPathInTrash(relativePath);
@@ -196,11 +528,14 @@ function onExplorerContextMenu(event) {
       return;
     }
 
-    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "delete-folder"]);
+    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "rename", "delete-folder"]);
     return;
   }
 
   if (fileTarget) {
+    const libraryId = fileTarget.dataset.libraryId;
+    if (libraryId) void switchActiveLibrary(libraryId);
+
     const fullPath = fileTarget.dataset.entryPath || "";
     const relativePath = removeRootPrefix(fullPath);
     const insideTrash = isPathInTrash(relativePath);
@@ -212,7 +547,7 @@ function onExplorerContextMenu(event) {
       return;
     }
 
-    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "delete-file", "set-front-page"]);
+    showContextMenu(event.clientX, event.clientY, ["new-file", "new-folder", "rename", "delete-file", "set-front-page"]);
     return;
   }
 
@@ -327,6 +662,11 @@ async function onContextMenuAction(action) {
     return;
   }
 
+  if (action === "rename" && (targetKind === "file" || targetKind === "folder")) {
+    await renameEntry(state.contextMenuTargetPath, targetKind);
+    return;
+  }
+
   if (action === "restore-from-trash" && (targetKind === "file" || targetKind === "folder")) {
     await restoreFromTrash(state.contextMenuTargetPath, targetKind);
   }
@@ -341,24 +681,86 @@ function setSettingsPanelOpen(isOpen) {
   settingsPanel.hidden = !isOpen;
 }
 
+function setTheme(theme) {
+  state.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme();
+}
+
+function applyTheme() {
+  const theme = state.theme === "system" 
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") 
+    : state.theme;
+  
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+  
+  updateThemeUI();
+}
+
+function updateThemeUI() {
+  const buttons = {
+    light: themeLightBtn,
+    dark: themeDarkBtn,
+    system: themeSystemBtn
+  };
+  
+  Object.entries(buttons).forEach(([key, btn]) => {
+    if (!btn) return;
+    if (state.theme === key) {
+      btn.classList.add("bg-white", "dark:bg-slate-700", "shadow-sm", "text-indigo-600", "dark:text-indigo-400");
+    } else {
+      btn.classList.remove("bg-white", "dark:bg-slate-700", "shadow-sm", "text-indigo-600", "dark:text-indigo-400");
+    }
+  });
+}
+
+function initializeTheme() {
+  state.theme = localStorage.getItem(THEME_KEY) || "system";
+  applyTheme();
+  
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (state.theme === "system") {
+      applyTheme();
+    }
+  });
+}
+
 async function initializeLibrary() {
   try {
+    const rawExpanded = localStorage.getItem(EXPANDED_FOLDERS_KEY);
+    if (rawExpanded) {
+      try {
+        state.expandedFolders = new Set(JSON.parse(rawExpanded));
+      } catch (e) {
+        state.expandedFolders = new Set();
+      }
+    }
     state.frontPageByFolder = loadFrontPageMap();
     state.libraryFolders = await getStoredLibraryFolders();
     renderLibraryList();
 
     const storedActiveId = localStorage.getItem(ACTIVE_LIBRARY_KEY) || "";
     const activeEntry = state.libraryFolders.find((entry) => entry.id === storedActiveId);
+    
     if (activeEntry) {
-      const canOpen = await hasReadWritePermission(activeEntry.handle);
-      if (canOpen) {
-        state.activeLibraryFolderId = activeEntry.id;
-        await loadRootFolder(activeEntry.handle);
-        return;
-      }
+      state.activeLibraryFolderId = activeEntry.id;
+      state.rootHandle = activeEntry.handle;
+    } else if (state.libraryFolders.length > 0) {
+      // If no active library is stored but we have libraries, pick the first one as active root
+      state.activeLibraryFolderId = state.libraryFolders[0].id;
+      state.rootHandle = state.libraryFolders[0].handle;
     }
 
-    setStatus("Open Settings > Library and add a folder to get started.");
+    if (state.libraryFolders.length > 0) {
+      await refreshTree();
+      await tryOpenFrontPageForActiveFolder();
+    } else {
+      setStatus("Open Settings > Library and add a folder to get started.");
+    }
   } catch (error) {
     console.error(error);
     setStatus("Unable to load saved library folders.");
@@ -516,13 +918,17 @@ async function removeLibraryFolder(folderId) {
   if (state.activeLibraryFolderId === folderId) {
     state.activeLibraryFolderId = "";
     localStorage.removeItem(ACTIVE_LIBRARY_KEY);
-    state.rootHandle = null;
-    clearCurrentSelection();
-    folderName.textContent = "No folder selected";
-    treeRoot.innerHTML = '<p class="muted">Choose a folder from Settings > Library.</p>';
-    updateExplorerActionButtons();
+    
+    if (state.libraryFolders.length > 0) {
+      await switchActiveLibrary(state.libraryFolders[0].id);
+    } else {
+      state.rootHandle = null;
+      clearCurrentSelection();
+      folderName.textContent = "No folder selected";
+    }
   }
 
+  await refreshTree();
   renderLibraryList();
   setStatus("Removed " + entry.name + " from Library.");
 }
@@ -535,6 +941,7 @@ async function loadRootFolder(handle) {
   editor.value = "";
   renderPreview("");
   saveBtn.disabled = true;
+  if (newFileBtn) newFileBtn.disabled = false;
   folderName.textContent = handle.name;
   setExplorerSelection("root", handle.name, handle.name);
   await refreshTree();
@@ -602,64 +1009,41 @@ async function deleteStoredLibraryFolder(folderId) {
   db.close();
 }
 
-function createBootstrapIconElement(iconName, className) {
-  const iconPaths = {
-    "file-earmark-plus": [
-      "M6.5 0A1.5 1.5 0 0 0 5 1.5V14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4.5L10.5 0zM10 1.5V4a1 1 0 0 0 1 1h2.5z",
-      "M8 6a.5.5 0 0 1 .5.5V8H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V9H6a.5.5 0 0 1 0-1h1.5V6.5A.5.5 0 0 1 8 6"
-    ],
-    "folder-plus": [
-      "M.5 3a2 2 0 0 1 2-2H5a2 2 0 0 1 1.414.586L7.414 2.586A2 2 0 0 0 8.828 3H13.5a2 2 0 0 1 2 2v1H.5z",
-      "M.5 5.5A1.5 1.5 0 0 1 2 4h12a1.5 1.5 0 0 1 1.493 1.356l-.727 6A1.5 1.5 0 0 1 13.274 13H2.726a1.5 1.5 0 0 1-1.492-1.644z",
-      "M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7"
-    ],
-    "file-earmark-x": [
-      "M6.5 0A1.5 1.5 0 0 0 5 1.5V14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4.5L10.5 0zM10 1.5V4a1 1 0 0 0 1 1h2.5z",
-      "M6.646 6.646a.5.5 0 0 1 .708 0L8 7.293l.646-.647a.5.5 0 1 1 .708.708L8.707 8l.647.646a.5.5 0 0 1-.708.708L8 8.707l-.646.647a.5.5 0 0 1-.708-.708L7.293 8l-.647-.646a.5.5 0 0 1 0-.708"
-    ],
-    "folder-x": [
-      "M.5 3a2 2 0 0 1 2-2H5a2 2 0 0 1 1.414.586L7.414 2.586A2 2 0 0 0 8.828 3H13.5a2 2 0 0 1 2 2v1H.5z",
-      "M.5 5.5A1.5 1.5 0 0 1 2 4h12a1.5 1.5 0 0 1 1.493 1.356l-.727 6A1.5 1.5 0 0 1 13.274 13H2.726a1.5 1.5 0 0 1-1.492-1.644z",
-      "M6.854 7.146a.5.5 0 0 0-.708.708L6.793 8.5l-.647.646a.5.5 0 0 0 .708.708L7.5 9.207l.646.647a.5.5 0 0 0 .708-.708L8.207 8.5l.647-.646a.5.5 0 0 0-.708-.708L7.5 7.793z"
-    ],
-    folder2: [
-      "M.5 3a2 2 0 0 1 2-2h2.586a1 1 0 0 1 .707.293L7.5 3H13.5a2 2 0 0 1 2 2v1h-15z",
-      "M0 5.5A1.5 1.5 0 0 1 1.5 4h13A1.5 1.5 0 0 1 16 5.5v6A1.5 1.5 0 0 1 14.5 13h-13A1.5 1.5 0 0 1 0 11.5z"
-    ],
-    "file-earmark-text": [
-      "M6.5 0A1.5 1.5 0 0 0 5 1.5V14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4.5L10.5 0zM10 1.5V4a1 1 0 0 0 1 1h2.5z",
-      "M6 8.5A.5.5 0 0 1 6.5 8h5a.5.5 0 0 1 0 1h-5A.5.5 0 0 1 6 8.5m0 2A.5.5 0 0 1 6.5 10h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5M6.5 6a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"
-    ]
-  };
-
-  const paths = iconPaths[iconName] || iconPaths["file-earmark-text"];
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 16 16");
-  svg.setAttribute("fill", "currentColor");
-  svg.setAttribute("aria-hidden", "true");
-  svg.classList.add("bi");
-  if (className) {
-    svg.classList.add(className);
-  }
-
-  for (const d of paths) {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", d);
-    svg.appendChild(path);
-  }
-
-  return svg;
-}
-
 function togglePreview() {
   state.previewVisible = !state.previewVisible;
   updatePreviewVisibility();
 }
 
 function updatePreviewVisibility() {
-  panes.classList.toggle("is-preview-hidden", !state.previewVisible);
-  togglePreviewBtn.textContent = state.previewVisible ? "Hide Preview" : "Show Preview";
+  if (previewPane) {
+    previewPane.classList.toggle("is-hidden", !state.previewVisible);
+  }
+  const labelSpan = togglePreviewBtn.querySelector("span");
+  if (labelSpan) {
+    labelSpan.textContent = state.previewVisible ? "Hide Preview" : "Show Preview";
+  }
   togglePreviewBtn.setAttribute("aria-pressed", String(!state.previewVisible));
+}
+
+function toggleExplorer() {
+  state.explorerVisible = !state.explorerVisible;
+  localStorage.setItem(EXPLORER_VISIBLE_KEY, String(state.explorerVisible));
+  updateExplorerVisibility();
+}
+
+function updateExplorerVisibility() {
+  if (mainContent) {
+    mainContent.classList.toggle("explorer-collapsed", !state.explorerVisible);
+  }
+  if (activityExplorerBtn) {
+    if (state.explorerVisible) {
+      activityExplorerBtn.classList.add("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
+      activityExplorerBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    } else {
+      activityExplorerBtn.classList.remove("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
+      activityExplorerBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    }
+  }
 }
 
 function setExplorerSelection(kind, fullPath, parentFullPath) {
@@ -673,7 +1057,7 @@ function updateExplorerActionButtons() {
   // Actions are handled through the explorer context menu.
 }
 
-async function buildFolderTree(dirHandle, pathPrefix) {
+async function buildFolderTree(dirHandle, pathPrefix, libraryId) {
   const container = document.createElement("ul");
 
   const directories = [];
@@ -704,7 +1088,9 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     const label = document.createElement("span");
     label.className = "tree-label";
 
-    const folderIcon = createBootstrapIconElement("folder2", "item-icon");
+    const folderIcon = document.createElement("i");
+    folderIcon.setAttribute("data-lucide", "folder");
+    folderIcon.className = "item-icon text-amber-500 w-4 h-4";
 
     const folderNameText = document.createElement("span");
     folderNameText.className = "item-name";
@@ -717,7 +1103,10 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     summary.dataset.entryType = "folder";
     summary.dataset.entryPath = folderPath;
     summary.dataset.parentPath = pathPrefix;
+    summary.dataset.libraryId = libraryId;
+    
     summary.addEventListener("click", () => {
+      void switchActiveLibrary(libraryId);
       setExplorerSelection("folder", folderPath, pathPrefix);
     });
 
@@ -732,7 +1121,24 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     summary.appendChild(summaryRow);
 
     details.appendChild(summary);
-    details.appendChild(await buildFolderTree(directory.handle, folderPath));
+    
+    // Set initial open state
+    if (state.expandedFolders && state.expandedFolders.has(folderPath)) {
+      details.open = true;
+    }
+    
+    // Listen for toggle to save state
+    details.addEventListener("toggle", () => {
+      if (!state.expandedFolders) return;
+      if (details.open) {
+        state.expandedFolders.add(folderPath);
+      } else {
+        state.expandedFolders.delete(folderPath);
+      }
+      localStorage.setItem(EXPANDED_FOLDERS_KEY, JSON.stringify(Array.from(state.expandedFolders)));
+    });
+
+    details.appendChild(await buildFolderTree(directory.handle, folderPath, libraryId));
 
     item.appendChild(details);
     container.appendChild(item);
@@ -753,7 +1159,9 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     const fileLabel = document.createElement("span");
     fileLabel.className = "tree-label";
 
-    const fileIcon = createBootstrapIconElement("file-earmark-text", "item-icon");
+    const fileIcon = document.createElement("i");
+    fileIcon.setAttribute("data-lucide", "file-text");
+    fileIcon.className = "item-icon text-indigo-400 w-4 h-4";
 
     const fileNameText = document.createElement("span");
     fileNameText.className = "item-name";
@@ -767,8 +1175,10 @@ async function buildFolderTree(dirHandle, pathPrefix) {
     button.dataset.entryType = "file";
     button.dataset.entryPath = filePath;
     button.dataset.parentPath = pathPrefix;
+    button.dataset.libraryId = libraryId;
 
     button.addEventListener("click", () => {
+      void switchActiveLibrary(libraryId);
       setExplorerSelection("file", filePath, pathPrefix);
       void openMarkdownFile(file.handle, filePath, button);
     });
@@ -795,15 +1205,116 @@ async function buildFolderTree(dirHandle, pathPrefix) {
 }
 
 async function refreshTree() {
-  if (!state.rootHandle) {
+  if (state.libraryFolders.length === 0) {
+    treeRoot.innerHTML = '<p class="muted">Choose a folder from Settings > Library.</p>';
     return;
   }
 
   treeRoot.innerHTML = "";
   attachDropTarget(explorerHead, "");
-  const tree = await buildFolderTree(state.rootHandle, state.rootHandle.name);
-  treeRoot.appendChild(tree);
+
+  const treeList = document.createElement("ul");
+  treeList.className = "tree-root-list";
+  treeRoot.appendChild(treeList);
+
+  for (const entry of state.libraryFolders) {
+    const rootItem = document.createElement("li");
+    rootItem.className = "tree-item library-root";
+    treeList.appendChild(rootItem);
+
+    const details = document.createElement("details");
+    details.open = true; // Root libraries are open by default
+    rootItem.appendChild(details);
+
+    const summary = document.createElement("summary");
+    summary.className = "folder-summary library-summary";
+    summary.dataset.entryType = "root";
+    summary.dataset.entryPath = entry.name;
+    summary.dataset.libraryId = entry.id;
+    
+    summary.addEventListener("click", () => {
+      void switchActiveLibrary(entry.id);
+      setExplorerSelection("root", entry.name, entry.name);
+    });
+
+    const summaryRow = document.createElement("span");
+    summaryRow.className = "tree-row";
+
+    const label = document.createElement("span");
+    label.className = "tree-label";
+
+    const libIcon = document.createElement("i");
+    libIcon.setAttribute("data-lucide", "library");
+    libIcon.className = "item-icon text-indigo-500 w-4 h-4";
+
+    const libNameText = document.createElement("span");
+    libNameText.className = "item-name font-bold";
+    libNameText.textContent = entry.name;
+
+    label.appendChild(libIcon);
+    label.appendChild(libNameText);
+    summaryRow.appendChild(label);
+    summary.appendChild(summaryRow);
+    details.appendChild(summary);
+
+    try {
+      const hasPermission = await hasReadWritePermission(entry.handle);
+      if (hasPermission) {
+        const tree = await buildFolderTree(entry.handle, entry.name, entry.id);
+        details.appendChild(tree);
+      } else {
+        const reconnectContainer = document.createElement("div");
+        reconnectContainer.className = "p-2 pl-6";
+        
+        const reconnectBtn = document.createElement("button");
+        reconnectBtn.className = "text-xs text-indigo-600 hover:underline flex items-center gap-1";
+        reconnectBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i> Reconnect';
+        reconnectBtn.onclick = (e) => {
+          e.stopPropagation();
+          void reconnectLibrary(entry.id);
+        };
+        reconnectContainer.appendChild(reconnectBtn);
+        details.appendChild(reconnectContainer);
+      }
+    } catch (error) {
+      console.error(`Error rendering library ${entry.name}:`, error);
+    }
+  }
+
+  createIcons({ icons, root: treeRoot });
+  updateExplorerActionButtons();
 }
+
+async function switchActiveLibrary(libraryId) {
+  if (state.activeLibraryFolderId === libraryId) return;
+
+  const entry = state.libraryFolders.find(f => f.id === libraryId);
+  if (!entry) return;
+
+  state.activeLibraryFolderId = libraryId;
+  state.rootHandle = entry.handle;
+  localStorage.setItem(ACTIVE_LIBRARY_KEY, libraryId);
+  folderName.textContent = entry.name;
+  renderLibraryList();
+}
+
+async function reconnectLibrary(libraryId) {
+  const entry = state.libraryFolders.find(f => f.id === libraryId);
+  if (!entry) return;
+
+  try {
+    const hasPermission = await ensureReadWritePermission(entry.handle);
+    if (hasPermission) {
+      await switchActiveLibrary(libraryId);
+      await refreshTree();
+      await tryOpenFrontPageForActiveFolder();
+    }
+  } catch (error) {
+    console.error("Reconnection error:", error);
+    setStatus("Failed to reconnect library.");
+  }
+}
+
 
 async function openMarkdownFile(fileHandle, filePath, clickedButton) {
   try {
@@ -813,35 +1324,172 @@ async function openMarkdownFile(fileHandle, filePath, clickedButton) {
       return;
     }
 
+    // If already open, just switch
+    const existingTab = state.tabs.find(t => t.path === filePath);
+    if (existingTab) {
+      switchTab(filePath);
+      return;
+    }
+
     const file = await fileHandle.getFile();
     const text = await file.text();
 
-    state.currentFileHandle = fileHandle;
-    state.currentFilePath = filePath;
+    const newTab = {
+      handle: fileHandle,
+      path: filePath,
+      content: text,
+      isDirty: false
+    };
 
-    if (state.currentFileButton) {
-      state.currentFileButton.classList.remove("is-active");
-    }
-
-    const targetButton = clickedButton || findFileButtonByPath(filePath);
-    if (targetButton) {
-      targetButton.classList.add("is-active");
-      state.currentFileButton = targetButton;
-    } else {
-      state.currentFileButton = null;
-    }
-
-    filePathLabel.textContent = filePath;
-    editor.value = text;
-    insertImageBtn.disabled = false;
-    saveBtn.disabled = false;
-    await updateImageBlobCache();
-    renderPreview(text);
-    setStatus("File opened.");
+    state.tabs.push(newTab);
+    state.activeTabId = filePath;
+    
+    updateEditorWithTabData(newTab);
+    renderTabs();
+    saveTabState();
+    setStatus("File opened in new tab.");
   } catch (error) {
     console.error(error);
     setStatus("Unable to open selected file.");
   }
+}
+
+function updateEditorWithTabData(tab) {
+  state.currentFileHandle = tab.handle;
+  state.currentFilePath = tab.path;
+  
+  if (state.currentFileButton) {
+    state.currentFileButton.classList.remove("is-active");
+  }
+  
+  const targetButton = findFileButtonByPath(tab.path);
+  if (targetButton) {
+    targetButton.classList.add("is-active");
+    state.currentFileButton = targetButton;
+  } else {
+    state.currentFileButton = null;
+  }
+
+  filePathLabel.textContent = tab.path;
+  editor.value = tab.content;
+  insertImageBtn.disabled = false;
+  saveBtn.disabled = false;
+  
+  void updateImageBlobCache();
+  renderPreview(tab.content);
+}
+
+function switchTab(tabId) {
+  if (state.activeTabId === tabId) return;
+
+  // Save current editor content to the outgoing tab
+  const outgoingTab = state.tabs.find(t => t.path === state.activeTabId);
+  if (outgoingTab) {
+    outgoingTab.content = editor.value;
+  }
+
+  const incomingTab = state.tabs.find(t => t.path === tabId);
+  if (!incomingTab) return;
+
+  state.activeTabId = tabId;
+  updateEditorWithTabData(incomingTab);
+  renderTabs();
+  saveTabState();
+}
+
+async function closeTab(tabId, event) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  const tabIndex = state.tabs.findIndex(t => t.path === tabId);
+  if (tabIndex === -1) return;
+
+  const tab = state.tabs[tabIndex];
+  if (tab.isDirty) {
+    if (!window.confirm(`File "${tab.path}" has unsaved changes. Close anyway?`)) {
+      return;
+    }
+  }
+
+  state.tabs.splice(tabIndex, 1);
+
+  if (state.tabs.length === 0) {
+    state.activeTabId = null;
+    clearEditor();
+  } else if (state.activeTabId === tabId) {
+    // Switch to adjacent tab
+    const nextTabIndex = Math.min(tabIndex, state.tabs.length - 1);
+    const nextTab = state.tabs[nextTabIndex];
+    state.activeTabId = nextTab.path;
+    updateEditorWithTabData(nextTab);
+  }
+
+  renderTabs();
+  saveTabState();
+}
+
+function renderTabs() {
+  if (!tabBar) return;
+
+  if (state.tabs.length === 0) {
+    tabBar.hidden = true;
+    return;
+  }
+
+  tabBar.hidden = false;
+  tabBar.innerHTML = "";
+
+  state.tabs.forEach(tab => {
+    const tabEl = document.createElement("div");
+    tabEl.className = "tab" + (state.activeTabId === tab.path ? " is-active" : "");
+    tabEl.dataset.path = tab.path;
+    
+    const info = splitParentAndName(removeRootPrefix(tab.path));
+    
+    const nameEl = document.createElement("span");
+    nameEl.textContent = info.name;
+    tabEl.appendChild(nameEl);
+
+    if (tab.isDirty) {
+      const dot = document.createElement("span");
+      dot.className = "tab-dirty-dot";
+      tabEl.appendChild(dot);
+    }
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "tab-close";
+    closeBtn.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+    closeBtn.addEventListener("click", (e) => void closeTab(tab.path, e));
+    tabEl.appendChild(closeBtn);
+
+    tabEl.addEventListener("click", () => switchTab(tab.path));
+    
+    tabBar.appendChild(tabEl);
+  });
+
+  createIcons({ icons, root: tabBar });
+}
+
+function saveTabState() {
+  const tabPaths = state.tabs.map(t => t.path);
+  localStorage.setItem(OPEN_TABS_KEY, JSON.stringify(tabPaths));
+  localStorage.setItem(ACTIVE_TAB_KEY, state.activeTabId || "");
+}
+
+function clearEditor() {
+  state.currentFileHandle = null;
+  state.currentFilePath = "";
+  if (state.currentFileButton) {
+    state.currentFileButton.classList.remove("is-active");
+  }
+  state.currentFileButton = null;
+  filePathLabel.textContent = "No file opened";
+  editor.value = "";
+  insertImageBtn.disabled = true;
+  saveBtn.disabled = true;
+  clearImageBlobCache();
+  renderPreview("");
 }
 
 async function ensureReadWritePermission(fileHandle) {
@@ -856,21 +1504,83 @@ async function ensureReadWritePermission(fileHandle) {
   return requested === "granted";
 }
 
+async function restoreTabs() {
+  const savedPaths = localStorage.getItem(OPEN_TABS_KEY);
+  const savedActiveId = localStorage.getItem(ACTIVE_TAB_KEY);
+  
+  if (!savedPaths) return;
+  
+  try {
+    const paths = JSON.parse(savedPaths);
+    for (const path of paths) {
+      try {
+        const relativePath = removeRootPrefix(path);
+        const info = splitParentAndName(relativePath);
+        const dirHandle = await getDirectoryHandleByRelativePath(info.parentPath);
+        const fileHandle = await dirHandle.getFileHandle(info.name);
+        
+        const file = await fileHandle.getFile();
+        const text = await file.text();
+        
+        state.tabs.push({
+          handle: fileHandle,
+          path: path,
+          content: text,
+          isDirty: false
+        });
+      } catch (err) {
+        console.warn(`Failed to restore tab for ${path}:`, err);
+      }
+    }
+    
+    if (state.tabs.length > 0) {
+      const activeTab = state.tabs.find(t => t.path === savedActiveId) || state.tabs[0];
+      state.activeTabId = activeTab.path;
+      updateEditorWithTabData(activeTab);
+      renderTabs();
+    }
+  } catch (err) {
+    console.error("Failed to parse saved tabs:", err);
+  }
+}
+
+
 async function saveCurrentFile() {
-  if (!state.currentFileHandle) {
+  const activeTab = state.tabs.find(t => t.path === state.activeTabId);
+  if (!activeTab) {
     setStatus("Open a file first.");
     return;
   }
-
   try {
-    const writable = await state.currentFileHandle.createWritable();
+    const writable = await activeTab.handle.createWritable();
     await writable.write(editor.value);
     await writable.close();
-    setStatus("Saved " + state.currentFilePath);
+    
+    activeTab.content = editor.value;
+    activeTab.isDirty = false;
+    renderTabs();
+    
+    setStatus("Saved " + activeTab.path);
   } catch (error) {
     console.error(error);
     setStatus("Save failed.");
   }
+}
+
+function applyFormatting(prefix, suffix) {
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const text = editor.value;
+  const selected = text.substring(start, end);
+  const before = text.substring(0, start);
+  const after = text.substring(end);
+
+  editor.value = before + prefix + selected + suffix + after;
+  editor.selectionStart = start + prefix.length;
+  editor.selectionEnd = start + prefix.length + selected.length;
+  editor.focus();
+  
+  editor.dispatchEvent(new Event('input'));
 }
 
 async function createMarkdownFile(destinationPathOverride) {
@@ -909,9 +1619,17 @@ async function createMarkdownFile(destinationPathOverride) {
       return;
     }
 
-    await targetDir.getFileHandle(fileName, { create: true });
+    const fileHandle = await targetDir.getFileHandle(fileName, { create: true });
+
+    const writable = await fileHandle.createWritable();
+    const title = fileName.replace(/\.md$/i, "");
+    await writable.write(`# ${title}\n\n`);
+    await writable.close();
+
     await refreshTree();
     setStatus("Created " + fileName + " in " + formatRelativePath(destinationPath));
+    const fullPath = destinationPath ? destinationPath + "/" + fileName : fileName;
+    await openMarkdownFile(fileHandle, fullPath);
   } catch (error) {
     console.error(error);
     setStatus("Unable to create file.");
@@ -961,6 +1679,131 @@ async function createFolder(destinationPathOverride) {
   }
 }
 
+async function renameEntry(sourcePath, kind) {
+  if (!state.rootHandle) {
+    setStatus("Open a folder first.");
+    return;
+  }
+
+  try {
+    const sourceRelative = removeRootPrefix(sourcePath);
+    const sourceInfo = splitParentAndName(sourceRelative);
+    
+    if (sourceRelative === TRASH_DIR_NAME) {
+      setStatus("Trash folder cannot be renamed.");
+      return;
+    }
+
+    const newNameInput = window.prompt("New name:", sourceInfo.name);
+    if (newNameInput === null) {
+      setStatus("Rename canceled.");
+      return;
+    }
+
+    const trimmed = newNameInput.trim();
+    if (!trimmed) {
+      setStatus("Name cannot be empty.");
+      return;
+    }
+
+    if (trimmed === sourceInfo.name) {
+      return; // No change
+    }
+
+    if (trimmed.includes("/")) {
+      setStatus("Name cannot contain '/'.");
+      return;
+    }
+
+    const parentHandle = await getDirectoryHandleByRelativePath(sourceInfo.parentPath);
+    const alreadyExistsFile = await fileExistsInDirectory(parentHandle, trimmed);
+    const alreadyExistsDir = await directoryExistsInDirectory(parentHandle, trimmed);
+    if (alreadyExistsFile || alreadyExistsDir) {
+      setStatus("An item named " + trimmed + " already exists.");
+      return;
+    }
+
+    if (kind === "file") {
+      const sourceFileHandle = await parentHandle.getFileHandle(sourceInfo.name);
+      await copyFileToDirectory(sourceFileHandle, parentHandle, trimmed);
+      await parentHandle.removeEntry(sourceInfo.name);
+      
+      const newRelativePath = sourceInfo.parentPath ? sourceInfo.parentPath + "/" + trimmed : trimmed;
+      const newFullPath = state.rootHandle.name + "/" + newRelativePath;
+      const newFileHandle = await getFileHandleByRelativePath(newRelativePath);
+
+      // Update tabs if file is open
+      state.tabs.forEach(tab => {
+        if (tab.path === sourcePath) {
+          tab.path = newFullPath;
+          tab.handle = newFileHandle;
+          if (state.activeTabId === sourcePath) {
+            state.activeTabId = newFullPath;
+            state.currentFilePath = newFullPath;
+            state.currentFileHandle = newFileHandle;
+            filePathLabel.textContent = newFullPath;
+          }
+        }
+      });
+
+      if (state.activeLibraryFolderId && (getFrontPageMap()[state.activeLibraryFolderId] || "") === sourceRelative) {
+        state.frontPageByFolder[state.activeLibraryFolderId] = newRelativePath;
+        saveFrontPageMap();
+      }
+    } else {
+      const sourceDirHandle = await parentHandle.getDirectoryHandle(sourceInfo.name);
+      const targetDir = await parentHandle.getDirectoryHandle(trimmed, { create: true });
+      await copyDirectoryContents(sourceDirHandle, targetDir);
+      await parentHandle.removeEntry(sourceInfo.name, { recursive: true });
+
+      // Update tabs for any file inside this folder
+      for (const tab of state.tabs) {
+        const tabRelativePath = removeRootPrefix(tab.path);
+        if (tabRelativePath === sourceRelative || tabRelativePath.startsWith(sourceRelative + "/")) {
+          let newRelativePath;
+          if (tabRelativePath === sourceRelative) {
+             newRelativePath = (sourceInfo.parentPath ? sourceInfo.parentPath + "/" : "") + trimmed;
+          } else {
+             const subPath = tabRelativePath.slice(sourceRelative.length);
+             newRelativePath = (sourceInfo.parentPath ? sourceInfo.parentPath + "/" : "") + trimmed + subPath;
+          }
+          
+          const newFullPath = state.rootHandle.name + "/" + newRelativePath;
+          const oldPath = tab.path;
+          
+          tab.path = newFullPath;
+          tab.handle = await getFileHandleByRelativePath(newRelativePath);
+          
+          if (state.activeTabId === oldPath) {
+            state.activeTabId = newFullPath;
+            state.currentFilePath = newFullPath;
+            state.currentFileHandle = tab.handle;
+            filePathLabel.textContent = newFullPath;
+          }
+        }
+      }
+
+      if (state.activeLibraryFolderId) {
+        const frontPagePath = state.frontPageByFolder[state.activeLibraryFolderId] || "";
+        if (frontPagePath === sourceRelative || frontPagePath.startsWith(sourceRelative + "/")) {
+          const destinationRoot = (sourceInfo.parentPath ? sourceInfo.parentPath + "/" : "") + trimmed;
+          const suffix = frontPagePath.slice(sourceRelative.length);
+          state.frontPageByFolder[state.activeLibraryFolderId] = destinationRoot + suffix;
+          saveFrontPageMap();
+        }
+      }
+    }
+
+    await refreshTree();
+    renderTabs();
+    saveTabState();
+    setStatus("Renamed to " + trimmed);
+  } catch (error) {
+    console.error(error);
+    setStatus("Unable to rename.");
+  }
+}
+
 async function deleteFile(sourcePath) {
   if (!state.rootHandle) {
     setStatus("Open a folder first.");
@@ -984,12 +1827,15 @@ async function deleteFile(sourcePath) {
       }
     }
 
-    if (state.currentFilePath === sourcePath) {
-      clearCurrentSelection();
+    // Close tab if deleted file was open
+    if (state.tabs.some(t => t.path === sourcePath)) {
+      await closeTab(sourcePath);
     }
 
     setExplorerSelection("root", state.rootHandle.name, state.rootHandle.name);
     await refreshTree();
+    renderTabs();
+    saveTabState();
     setStatus("Moved file to Trash: " + movedName);
   } catch (error) {
     console.error(error);
@@ -1023,13 +1869,21 @@ async function deleteFolder(sourcePath) {
         clearFrontPageForActiveFolder();
       }
     }
+    
+    // Close any tabs for files inside this folder
+    const tabsToClose = state.tabs.filter(t => {
+      const tabRelative = removeRootPrefix(t.path);
+      return tabRelative === sourceRelative || tabRelative.startsWith(sourceRelative + "/");
+    }).map(t => t.path);
 
-    if (state.currentFilePath && removeRootPrefix(state.currentFilePath).startsWith(sourceRelative + "/")) {
-      clearCurrentSelection();
+    for (const path of tabsToClose) {
+      await closeTab(path);
     }
 
     setExplorerSelection("root", state.rootHandle.name, state.rootHandle.name);
     await refreshTree();
+    renderTabs();
+    saveTabState();
     setStatus("Moved folder to Trash: " + movedName);
   } catch (error) {
     console.error(error);
@@ -1069,18 +1923,36 @@ async function moveFile(sourcePath, destinationPath) {
     await copyFileToDirectory(sourceFileHandle, destinationHandle, sourceInfo.name);
     await sourceParentHandle.removeEntry(sourceInfo.name);
 
+    const newRelativePath = destinationPath ? destinationPath + "/" + sourceInfo.name : sourceInfo.name;
+    const newFullPath = state.rootHandle.name + "/" + newRelativePath;
+    const newFileHandle = await getFileHandleByRelativePath(newRelativePath);
+
+    // Update tab if file is open
+    state.tabs.forEach(tab => {
+      if (tab.path === sourcePath) {
+        tab.path = newFullPath;
+        tab.handle = newFileHandle;
+        if (state.activeTabId === sourcePath) {
+          state.activeTabId = newFullPath;
+          state.currentFilePath = newFullPath;
+          state.currentFileHandle = newFileHandle;
+          filePathLabel.textContent = newFullPath;
+        }
+      }
+    });
+
     if (state.activeLibraryFolderId) {
       const frontPagePath = state.frontPageByFolder[state.activeLibraryFolderId] || "";
       if (frontPagePath === sourceRelative) {
-        const movedPath = destinationPath ? destinationPath + "/" + sourceInfo.name : sourceInfo.name;
-        state.frontPageByFolder[state.activeLibraryFolderId] = movedPath;
+        state.frontPageByFolder[state.activeLibraryFolderId] = newRelativePath;
         saveFrontPageMap();
       }
     }
 
-    clearCurrentSelection();
     setExplorerSelection("root", state.rootHandle.name, state.rootHandle.name);
     await refreshTree();
+    renderTabs();
+    saveTabState();
     setStatus("Moved file to " + formatRelativePath(destinationPath));
   } catch (error) {
     console.error(error);
@@ -1289,21 +2161,6 @@ function clearCurrentSelection() {
   insertImageBtn.disabled = true;
 }
 
-function removeRootPrefix(fullPath) {
-  if (!state.rootHandle) {
-    return fullPath;
-  }
-
-  if (fullPath === state.rootHandle.name) {
-    return "";
-  }
-
-  const prefix = state.rootHandle.name + "/";
-  if (fullPath.startsWith(prefix)) {
-    return fullPath.slice(prefix.length);
-  }
-  return fullPath;
-}
 
 function splitParentAndName(relativePath) {
   const parts = relativePath.split("/");
@@ -1313,7 +2170,6 @@ function splitParentAndName(relativePath) {
     name
   };
 }
-
 function formatRelativePath(relativePath) {
   if (!relativePath) {
     return "/";
@@ -1321,13 +2177,43 @@ function formatRelativePath(relativePath) {
   return "/" + relativePath;
 }
 
+function removeRootPrefix(fullPath) {
+  if (!fullPath) return "";
+  
+  for (const entry of state.libraryFolders) {
+    const prefix = entry.name;
+    if (fullPath === prefix) return "";
+    if (fullPath.startsWith(prefix + "/")) {
+      return fullPath.substring(prefix.length + 1);
+    }
+  }
+  
+  return fullPath;
+}
+
 async function getDirectoryHandleByRelativePath(relativePath) {
+  // If relativePath is empty, it means we want the root of the ACTIVE library
   if (!relativePath) {
     return state.rootHandle;
   }
 
+  // Check if relativePath is actually a fullPath starting with a library name
+  for (const entry of state.libraryFolders) {
+    if (relativePath === entry.name) return entry.handle;
+    if (relativePath.startsWith(entry.name + "/")) {
+      const actualRelative = relativePath.substring(entry.name.length + 1);
+      return await getDirectoryHandleByRootAndRelative(entry.handle, actualRelative);
+    }
+  }
+
+  // Fallback to active root
+  return await getDirectoryHandleByRootAndRelative(state.rootHandle, relativePath);
+}
+
+async function getDirectoryHandleByRootAndRelative(rootHandle, relativePath) {
+  if (!relativePath) return rootHandle;
   const parts = relativePath.split("/").filter(Boolean);
-  let current = state.rootHandle;
+  let current = rootHandle;
 
   for (const part of parts) {
     current = await current.getDirectoryHandle(part);
@@ -1947,3 +2833,342 @@ function escapeHtml(text) {
 }
 
 renderPreview("");
+
+async function initializePrivacyScreen() {
+  console.log("Initializing Privacy Screen...", { privacyLockTrigger });
+  // Load settings
+  state.privacyEnabled = localStorage.getItem(PRIVACY_ENABLED_KEY) === "true";
+  state.privacyTimeout = parseInt(localStorage.getItem(PRIVACY_TIMEOUT_KEY) || "5", 10);
+  try {
+    const stored = localStorage.getItem(PRIVACY_SEARCH_KEY);
+    state.privacySearchEngines = stored ? JSON.parse(stored) : ["https://www.google.com/search?q="];
+  } catch (e) {
+    state.privacySearchEngines = ["https://www.google.com/search?q="];
+  }
+  state.privacyAiEngine = localStorage.getItem(PRIVACY_AI_KEY) || "https://gemini.google.com/app";
+  state.privacyPassword = localStorage.getItem(PRIVACY_PASSWORD_KEY) || "";
+  state.privacyLinks = localStorage.getItem(PRIVACY_LINKS_KEY) || "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com";
+  state.privacyTimezone = localStorage.getItem(PRIVACY_TIMEZONE_KEY) || "auto";
+
+  // Update UI settings
+  if (privacyEnabledToggle) privacyEnabledToggle.checked = state.privacyEnabled;
+  if (privacyTimeoutInput) privacyTimeoutInput.value = state.privacyTimeout;
+  if (privacySearchEngineCbs.length) {
+    privacySearchEngineCbs.forEach(cb => {
+      cb.checked = state.privacySearchEngines.includes(cb.value);
+    });
+  }
+  if (privacyAiSelect) privacyAiSelect.value = state.privacyAiEngine;
+  if (privacyPasswordSetup) privacyPasswordSetup.value = state.privacyPassword;
+  if (privacyLinksSetup) privacyLinksSetup.value = state.privacyLinks;
+  if (privacyTimezoneSelect) privacyTimezoneSelect.value = state.privacyTimezone;
+
+  // Listeners for settings
+  privacyEnabledToggle?.addEventListener("change", (e) => {
+    state.privacyEnabled = e.target.checked;
+    localStorage.setItem(PRIVACY_ENABLED_KEY, state.privacyEnabled);
+  });
+  privacyTimeoutInput?.addEventListener("change", (e) => {
+    state.privacyTimeout = parseInt(e.target.value, 10);
+    localStorage.setItem(PRIVACY_TIMEOUT_KEY, state.privacyTimeout);
+  });
+  
+  if (privacySearchEngineCbs.length) {
+    privacySearchEngineCbs.forEach(cb => {
+      cb.addEventListener("change", () => {
+        const selected = Array.from(privacySearchEngineCbs)
+          .filter(c => c.checked)
+          .map(c => c.value);
+        
+        if (selected.length === 0) {
+          cb.checked = true;
+          return;
+        }
+        
+        state.privacySearchEngines = selected;
+        localStorage.setItem(PRIVACY_SEARCH_KEY, JSON.stringify(state.privacySearchEngines));
+      });
+    });
+  }
+  privacyAiSelect?.addEventListener("change", (e) => {
+    state.privacyAiEngine = e.target.value;
+    localStorage.setItem(PRIVACY_AI_KEY, state.privacyAiEngine);
+  });
+  privacyPasswordSetup?.addEventListener("change", (e) => {
+    state.privacyPassword = e.target.value;
+    localStorage.setItem(PRIVACY_PASSWORD_KEY, state.privacyPassword);
+  });
+  privacyLinksSetup?.addEventListener("change", (e) => {
+    state.privacyLinks = e.target.value;
+    localStorage.setItem(PRIVACY_LINKS_KEY, state.privacyLinks);
+  });
+  privacyTimezoneSelect?.addEventListener("change", (e) => {
+    state.privacyTimezone = e.target.value;
+    localStorage.setItem(PRIVACY_TIMEZONE_KEY, state.privacyTimezone);
+    updatePrivacyClock(); // Immediate update
+  });
+
+  // Activity listeners
+  const resetActivity = () => {
+    state.lastActivity = Date.now();
+  };
+
+  window.addEventListener("mousemove", resetActivity);
+  window.addEventListener("keydown", resetActivity);
+  window.addEventListener("mousedown", resetActivity);
+  window.addEventListener("touchstart", resetActivity);
+
+  // Search logic
+  privacySearchForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const query = privacySearchInput.value.trim();
+    if (query && state.privacySearchEngines.length > 0) {
+      state.privacySearchEngines.forEach(engine => {
+        window.open(engine + encodeURIComponent(query), "_blank");
+      });
+      privacySearchInput.value = "";
+    }
+  });
+
+  // AI Chat logic
+  privacyAiForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = privacyAiInput.value.trim();
+    if (message) {
+      appendAiMessage("user", message);
+      privacyAiInput.value = "";
+      
+      // Simulate AI response or redirect to selected engine
+      setTimeout(() => {
+        if (message.toLowerCase().includes("open")) {
+           appendAiMessage("assistant", "Opening your selected AI engine...");
+           setTimeout(() => window.open(state.privacyAiEngine, "_blank"), 1000);
+        } else {
+           appendAiMessage("assistant", "I'm a privacy-focused assistant. For deep reasoning, I can open " + (new URL(state.privacyAiEngine).hostname) + " for you. Just type 'open'.");
+        }
+      }, 1000);
+    }
+  });
+
+  // Hub Tab Switching
+  const switchPrivacyTab = (tab) => {
+    // Reset all tabs and panes
+    [privacyHubSearchTab, privacyHubAiTab, privacyHubNoteTab].forEach(t => {
+      if (!t) return;
+      t.classList.remove("bg-white/10", "shadow-lg");
+      t.classList.add("text-white/40", "hover:bg-white/5");
+    });
+    [privacyHubSearchPane, privacyHubAiPane, privacyHubNotePane].forEach(p => p?.classList.add("hidden"));
+
+    if (tab === "search") {
+      privacyHubSearchTab.classList.add("bg-white/10", "shadow-lg");
+      privacyHubSearchTab.classList.remove("text-white/40", "hover:bg-white/5");
+      privacyHubSearchPane.classList.remove("hidden");
+    } else if (tab === "ai") {
+      privacyHubAiTab.classList.add("bg-white/10", "shadow-lg");
+      privacyHubAiTab.classList.remove("text-white/40", "hover:bg-white/5");
+      privacyHubAiPane.classList.remove("hidden");
+    } else if (tab === "note") {
+      privacyHubNoteTab.classList.add("bg-white/10", "shadow-lg");
+      privacyHubNoteTab.classList.remove("text-white/40", "hover:bg-white/5");
+      privacyHubNotePane.classList.remove("hidden");
+      privacyNoteInput.focus();
+    }
+    createIcons({ icons, root: privacyScreen });
+  };
+
+  privacyHubSearchTab?.addEventListener("click", () => switchPrivacyTab("search"));
+  privacyHubAiTab?.addEventListener("click", () => switchPrivacyTab("ai"));
+  privacyHubNoteTab?.addEventListener("click", () => switchPrivacyTab("note"));
+
+  // Quick Note Saving
+  privacyNoteSaveBtn?.addEventListener("click", async () => {
+    const text = privacyNoteInput.value.trim();
+    if (!text) return;
+
+    if (state.libraryFolders.length === 0) {
+      alert("No library folders found. Please add a folder in settings first.");
+      return;
+    }
+
+    try {
+      const rootFolder = state.libraryFolders[0].handle;
+      const date = new Date().toISOString().split('T')[0];
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).replace(':', '-').replace(/ /g, '');
+      const filename = `Quick Note ${date} ${time}.md`;
+      
+      const fileHandle = await rootFolder.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(text);
+      await writable.close();
+
+      privacyNoteInput.value = "";
+      alert(`Note saved as ${filename} in your primary library!`);
+      
+      // Refresh explorer if it's currently showing the primary library
+      if (!explorerSidebar.hidden && state.activeLibraryFolderId === state.libraryFolders[0].id) {
+        void refreshActiveLibrary();
+      }
+    } catch (err) {
+      console.error("Error saving quick note:", err);
+      alert("Failed to save note. Please check permissions.");
+    }
+  });
+
+  privacyUnlockBtn?.addEventListener("click", () => {
+    if (state.privacyPassword) {
+      showPrivacyAuth();
+    } else {
+      hidePrivacyScreen();
+    }
+  });
+
+  privacyLockTrigger?.addEventListener("click", showPrivacyScreen);
+
+  privacyAuthForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (privacyAuthInput.value === state.privacyPassword) {
+      hidePrivacyAuth();
+      hidePrivacyScreen();
+    } else {
+      privacyAuthError.hidden = false;
+      privacyAuthInput.value = "";
+      privacyAuthInput.focus();
+    }
+  });
+
+  privacyAuthCancel?.addEventListener("click", hidePrivacyAuth);
+
+  // Start Clock and Idle Check
+  console.log("Starting Privacy Clock...", { privacyClock, privacyDate });
+  updatePrivacyClock();
+  setInterval(updatePrivacyClock, 1000);
+  setInterval(checkPrivacyIdle, 10000); // Check every 10 seconds
+
+  // Always open with lock screen turned on if enabled
+  if (state.privacyEnabled) {
+    state.privacyActive = false;
+    showPrivacyScreen();
+  } else {
+    // Instantly hide without animation
+    state.privacyActive = false;
+    privacyScreen.classList.remove("opacity-100");
+    privacyScreen.classList.add("pointer-events-none");
+    privacyScreen.hidden = true;
+  }
+}
+
+function updatePrivacyClock() {
+  if (!privacyClock) {
+    console.error("Privacy Clock element not found!");
+    return;
+  }
+  const now = new Date();
+  const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+  const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+  
+  if (state.privacyTimezone !== "auto") {
+    options.timeZone = state.privacyTimezone;
+    dateOptions.timeZone = state.privacyTimezone;
+  }
+
+  const timeStr = now.toLocaleTimeString([], options);
+  const dateStr = now.toLocaleDateString([], dateOptions);
+  
+  privacyClock.textContent = timeStr;
+  privacyDate.textContent = dateStr;
+}
+
+function checkPrivacyIdle() {
+  if (!state.privacyEnabled || state.privacyActive) return;
+  
+  const idleTimeMs = Date.now() - state.lastActivity;
+  if (idleTimeMs > state.privacyTimeout * 60000) {
+    showPrivacyScreen();
+  }
+}
+
+function showPrivacyScreen() {
+  console.log("showPrivacyScreen called, current state:", { active: state.privacyActive, privacyScreen });
+  if (state.privacyActive) return;
+  state.privacyActive = true;
+  privacyScreen.hidden = false;
+  
+  // Render Links
+  renderPrivacyLinks();
+  
+  // Trigger animations
+  setTimeout(() => {
+    privacyScreen.classList.add("opacity-100");
+    privacyScreen.classList.remove("pointer-events-none");
+    createIcons({ icons, root: privacyScreen });
+    console.log("Privacy screen animations triggered.");
+  }, 10);
+}
+
+function renderPrivacyLinks() {
+  if (!privacyShortcuts) return;
+  privacyShortcuts.innerHTML = "";
+  
+  const links = state.privacyLinks.split("\n").map(l => l.trim()).filter(Boolean);
+  links.forEach(url => {
+    let icon = "globe";
+    let title = "Link";
+    
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      title = hostname.replace("www.", "");
+      if (hostname.includes("github")) icon = "code";
+      else if (hostname.includes("gmail") || hostname.includes("mail")) icon = "mail";
+      else if (hostname.includes("youtube")) icon = "play";
+      else if (hostname.includes("twitter") || hostname.includes("x.com")) icon = "message-square";
+    } catch {}
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.className = "p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-110 group";
+    a.title = title;
+    a.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 text-white/70 group-hover:text-white"></i>`;
+    privacyShortcuts.appendChild(a);
+  });
+}
+
+function hidePrivacyScreen() {
+  if (!state.privacyActive) return;
+  state.privacyActive = false;
+  privacyScreen.classList.remove("opacity-100");
+  privacyScreen.classList.add("pointer-events-none");
+  setTimeout(() => {
+    privacyScreen.hidden = true;
+  }, 150);
+}
+
+function appendAiMessage(role, text) {
+  const msg = document.createElement("div");
+  if (role === "user") {
+    msg.className = "bg-indigo-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none self-end max-w-[80%] leading-relaxed border border-white/10";
+  } else {
+    msg.className = "bg-white/10 text-white/90 text-xs p-3 rounded-2xl rounded-tl-none self-start max-w-[80%] leading-relaxed border border-white/10";
+  }
+  msg.textContent = text;
+  privacyAiMessages.appendChild(msg);
+  privacyAiMessages.scrollTop = privacyAiMessages.scrollHeight;
+}
+
+function showPrivacyAuth() {
+  privacyAuthContainer.hidden = false;
+  privacyAuthError.hidden = true;
+  privacyAuthInput.value = "";
+  setTimeout(() => {
+    privacyAuthContainer.classList.add("opacity-100");
+    privacyAuthInput.focus();
+  }, 10);
+}
+
+function hidePrivacyAuth() {
+  privacyAuthContainer.classList.remove("opacity-100");
+  setTimeout(() => {
+    privacyAuthContainer.hidden = true;
+  }, 500);
+}
