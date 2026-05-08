@@ -141,12 +141,6 @@ const privacyHubNotePane = document.getElementById("privacy-hub-note-pane");
 const privacyNoteInput = document.getElementById("privacy-note-input");
 const privacyNoteSaveBtn = document.getElementById("privacy-note-save-btn");
 
-const floatingAiBtn = document.getElementById("floating-ai-btn");
-const floatingAiWindow = document.getElementById("floating-ai-window");
-const floatingAiClose = document.getElementById("floating-ai-close");
-const floatingAiForm = document.getElementById("floating-ai-form");
-const floatingAiInput = document.getElementById("floating-ai-input");
-const floatingAiMessages = document.getElementById("floating-ai-messages");
 const privacyUnlockBtn = document.getElementById("privacy-unlock-btn");
 const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
 const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
@@ -3130,52 +3124,78 @@ function hidePrivacyScreen() {
   }, 150);
 }
 
+function initializeFloatingAi() {
+  console.log("Initializing Floating AI Assistant... (v2)");
+  
+  try {
+    const btn = document.getElementById("floating-ai-btn");
+    const win = document.getElementById("floating-ai-window");
+    const closeBtn = document.getElementById("floating-ai-close");
+    const form = document.getElementById("floating-ai-form");
+    const input = document.getElementById("floating-ai-input");
+
+    if (!btn || !win) {
+      console.warn("Floating AI elements not found in current view. This might be expected if the DOM isn't fully ready yet.", { btn, win });
+      // Retry in a moment if not found
+      setTimeout(initializeFloatingAi, 500);
+      return;
+    }
+
+    // Use a fresh listener to avoid duplicates if re-called
+    btn.onclick = (e) => {
+      console.log("Floating AI Button Triggered!");
+      e.stopPropagation();
+      const isHidden = win.classList.contains("hidden");
+      if (isHidden) {
+        win.classList.remove("hidden");
+        win.classList.add("flex");
+        input?.focus();
+      } else {
+        win.classList.add("hidden");
+        win.classList.remove("flex");
+      }
+    };
+
+    closeBtn.onclick = () => {
+      win.classList.add("hidden");
+      win.classList.remove("flex");
+    };
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (message) {
+        appendAiMessage("user", message);
+        input.value = "";
+        
+        setTimeout(() => {
+          if (message.toLowerCase().includes("open")) {
+             appendAiMessage("assistant", "Opening your selected AI engine...");
+             setTimeout(() => window.open(state.privacyAiEngine, "_blank"), 1000);
+          } else {
+             appendAiMessage("assistant", "I'm a privacy-focused assistant. For deep reasoning, I can open " + (new URL(state.privacyAiEngine).hostname) + " for you. Just type 'open'.");
+          }
+        }, 1000);
+      }
+    };
+
+    // Re-initialize Lucide icons
+    createIcons({ icons, root: document.getElementById("floating-ai-container") });
+    console.log("Floating AI Assistant initialized successfully.");
+  } catch (err) {
+    console.error("Failed to initialize Floating AI Assistant:", err);
+  }
+}
+
 function appendAiMessage(role, text) {
+  const msgs = document.getElementById("floating-ai-messages");
+  if (!msgs) return;
+  
   const msg = document.createElement("div");
   msg.className = `ai-message ai-message-${role}`;
   msg.textContent = text;
-  floatingAiMessages.appendChild(msg);
-  floatingAiMessages.scrollTop = floatingAiMessages.scrollHeight;
-}
-
-function initializeFloatingAi() {
-  console.log("Initializing Floating AI Assistant...");
-
-  floatingAiBtn?.addEventListener("click", () => {
-    const isHidden = floatingAiWindow.classList.contains("hidden");
-    if (isHidden) {
-      floatingAiWindow.classList.remove("hidden");
-      floatingAiInput.focus();
-    } else {
-      floatingAiWindow.classList.add("hidden");
-    }
-  });
-
-  floatingAiClose?.addEventListener("click", () => {
-    floatingAiWindow.classList.add("hidden");
-  });
-
-  floatingAiForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const message = floatingAiInput.value.trim();
-    if (message) {
-      appendAiMessage("user", message);
-      floatingAiInput.value = "";
-      
-      // Simulate AI response or redirect to selected engine
-      setTimeout(() => {
-        if (message.toLowerCase().includes("open")) {
-           appendAiMessage("assistant", "Opening your selected AI engine...");
-           setTimeout(() => window.open(state.privacyAiEngine, "_blank"), 1000);
-        } else {
-           appendAiMessage("assistant", "I'm a privacy-focused assistant. For deep reasoning, I can open " + (new URL(state.privacyAiEngine).hostname) + " for you. Just type 'open'.");
-        }
-      }, 1000);
-    }
-  });
-
-  // Re-initialize Lucide icons for the new window
-  createIcons({ icons, root: document.getElementById("floating-ai-container") });
+  msgs.appendChild(msg);
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 function showPrivacyAuth() {
