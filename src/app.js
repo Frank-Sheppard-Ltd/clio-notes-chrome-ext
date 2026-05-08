@@ -42,7 +42,8 @@ import {
   Lock,
   Globe,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Sparkles
 } from 'lucide';
 
 const icons = {
@@ -88,7 +89,8 @@ const icons = {
   Lock,
   Globe,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Sparkles
 };
 
 const settingsBtn = document.getElementById("settings-btn");
@@ -133,16 +135,18 @@ const privacyShortcuts = document.getElementById("privacy-shortcuts");
 const privacySearchForm = document.getElementById("privacy-search-form");
 const privacySearchInput = document.getElementById("privacy-search-input");
 const privacyHubSearchTab = document.getElementById("privacy-hub-search-tab");
-const privacyHubAiTab = document.getElementById("privacy-hub-ai-tab");
 const privacyHubNoteTab = document.getElementById("privacy-hub-note-tab");
 const privacyHubSearchPane = document.getElementById("privacy-hub-search-pane");
-const privacyHubAiPane = document.getElementById("privacy-hub-ai-pane");
 const privacyHubNotePane = document.getElementById("privacy-hub-note-pane");
 const privacyNoteInput = document.getElementById("privacy-note-input");
 const privacyNoteSaveBtn = document.getElementById("privacy-note-save-btn");
-const privacyAiForm = document.getElementById("privacy-ai-form");
-const privacyAiInput = document.getElementById("privacy-ai-input");
-const privacyAiMessages = document.getElementById("privacy-ai-messages");
+
+const floatingAiBtn = document.getElementById("floating-ai-btn");
+const floatingAiWindow = document.getElementById("floating-ai-window");
+const floatingAiClose = document.getElementById("floating-ai-close");
+const floatingAiForm = document.getElementById("floating-ai-form");
+const floatingAiInput = document.getElementById("floating-ai-input");
+const floatingAiMessages = document.getElementById("floating-ai-messages");
 const privacyUnlockBtn = document.getElementById("privacy-unlock-btn");
 const privacyEnabledToggle = document.getElementById("privacy-enabled-toggle");
 const privacyTimeoutInput = document.getElementById("privacy-timeout-input");
@@ -228,6 +232,7 @@ addLibraryFolderBtn.addEventListener("click", () => {
 });
 
 void initializePrivacyScreen();
+void initializeFloatingAi();
 
 // ─── Sidebar Switching ───────────────────────────────────────────────────────
 
@@ -2930,44 +2935,21 @@ async function initializePrivacyScreen() {
     }
   });
 
-  // AI Chat logic
-  privacyAiForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const message = privacyAiInput.value.trim();
-    if (message) {
-      appendAiMessage("user", message);
-      privacyAiInput.value = "";
-      
-      // Simulate AI response or redirect to selected engine
-      setTimeout(() => {
-        if (message.toLowerCase().includes("open")) {
-           appendAiMessage("assistant", "Opening your selected AI engine...");
-           setTimeout(() => window.open(state.privacyAiEngine, "_blank"), 1000);
-        } else {
-           appendAiMessage("assistant", "I'm a privacy-focused assistant. For deep reasoning, I can open " + (new URL(state.privacyAiEngine).hostname) + " for you. Just type 'open'.");
-        }
-      }, 1000);
-    }
-  });
+
 
   // Hub Tab Switching
   const switchPrivacyTab = (tab) => {
-    // Reset all tabs and panes
-    [privacyHubSearchTab, privacyHubAiTab, privacyHubNoteTab].forEach(t => {
+    [privacyHubSearchTab, privacyHubNoteTab].forEach(t => {
       if (!t) return;
       t.classList.remove("bg-white/10", "shadow-lg");
       t.classList.add("text-white/40", "hover:bg-white/5");
     });
-    [privacyHubSearchPane, privacyHubAiPane, privacyHubNotePane].forEach(p => p?.classList.add("hidden"));
+    [privacyHubSearchPane, privacyHubNotePane].forEach(p => p?.classList.add("hidden"));
 
     if (tab === "search") {
       privacyHubSearchTab.classList.add("bg-white/10", "shadow-lg");
       privacyHubSearchTab.classList.remove("text-white/40", "hover:bg-white/5");
       privacyHubSearchPane.classList.remove("hidden");
-    } else if (tab === "ai") {
-      privacyHubAiTab.classList.add("bg-white/10", "shadow-lg");
-      privacyHubAiTab.classList.remove("text-white/40", "hover:bg-white/5");
-      privacyHubAiPane.classList.remove("hidden");
     } else if (tab === "note") {
       privacyHubNoteTab.classList.add("bg-white/10", "shadow-lg");
       privacyHubNoteTab.classList.remove("text-white/40", "hover:bg-white/5");
@@ -2978,7 +2960,6 @@ async function initializePrivacyScreen() {
   };
 
   privacyHubSearchTab?.addEventListener("click", () => switchPrivacyTab("search"));
-  privacyHubAiTab?.addEventListener("click", () => switchPrivacyTab("ai"));
   privacyHubNoteTab?.addEventListener("click", () => switchPrivacyTab("note"));
 
   // Quick Note Saving
@@ -3111,7 +3092,10 @@ function renderPrivacyLinks() {
   privacyShortcuts.innerHTML = "";
   
   const links = state.privacyLinks.split("\n").map(l => l.trim()).filter(Boolean);
-  links.forEach(url => {
+  links.forEach(entry => {
+    const parts = entry.split("|");
+    const url = parts[0].trim();
+    const customLabel = parts[1] ? parts[1].trim() : "";
     let icon = "globe";
     let title = "Link";
     
@@ -3124,12 +3108,14 @@ function renderPrivacyLinks() {
       else if (hostname.includes("twitter") || hostname.includes("x.com")) icon = "message-square";
     } catch {}
 
+    const label = customLabel || title;
+
     const a = document.createElement("a");
     a.href = url;
     a.target = "_blank";
-    a.className = "p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-110 group";
-    a.title = title;
-    a.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 text-white/70 group-hover:text-white"></i>`;
+    a.className = "flex flex-col items-center gap-2 p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-110 group";
+    a.title = label;
+    a.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 text-white/70 group-hover:text-white"></i><span class="text-[10px] font-medium text-white/50 group-hover:text-white/80 transition-colors truncate max-w-[80px]">${label}</span>`;
     privacyShortcuts.appendChild(a);
   });
 }
@@ -3146,14 +3132,50 @@ function hidePrivacyScreen() {
 
 function appendAiMessage(role, text) {
   const msg = document.createElement("div");
-  if (role === "user") {
-    msg.className = "bg-indigo-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none self-end max-w-[80%] leading-relaxed border border-white/10";
-  } else {
-    msg.className = "bg-white/10 text-white/90 text-xs p-3 rounded-2xl rounded-tl-none self-start max-w-[80%] leading-relaxed border border-white/10";
-  }
+  msg.className = `ai-message ai-message-${role}`;
   msg.textContent = text;
-  privacyAiMessages.appendChild(msg);
-  privacyAiMessages.scrollTop = privacyAiMessages.scrollHeight;
+  floatingAiMessages.appendChild(msg);
+  floatingAiMessages.scrollTop = floatingAiMessages.scrollHeight;
+}
+
+function initializeFloatingAi() {
+  console.log("Initializing Floating AI Assistant...");
+
+  floatingAiBtn?.addEventListener("click", () => {
+    const isHidden = floatingAiWindow.classList.contains("hidden");
+    if (isHidden) {
+      floatingAiWindow.classList.remove("hidden");
+      floatingAiInput.focus();
+    } else {
+      floatingAiWindow.classList.add("hidden");
+    }
+  });
+
+  floatingAiClose?.addEventListener("click", () => {
+    floatingAiWindow.classList.add("hidden");
+  });
+
+  floatingAiForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = floatingAiInput.value.trim();
+    if (message) {
+      appendAiMessage("user", message);
+      floatingAiInput.value = "";
+      
+      // Simulate AI response or redirect to selected engine
+      setTimeout(() => {
+        if (message.toLowerCase().includes("open")) {
+           appendAiMessage("assistant", "Opening your selected AI engine...");
+           setTimeout(() => window.open(state.privacyAiEngine, "_blank"), 1000);
+        } else {
+           appendAiMessage("assistant", "I'm a privacy-focused assistant. For deep reasoning, I can open " + (new URL(state.privacyAiEngine).hostname) + " for you. Just type 'open'.");
+        }
+      }, 1000);
+    }
+  });
+
+  // Re-initialize Lucide icons for the new window
+  createIcons({ icons, root: document.getElementById("floating-ai-container") });
 }
 
 function showPrivacyAuth() {
