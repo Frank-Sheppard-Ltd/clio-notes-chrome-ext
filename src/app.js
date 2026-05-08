@@ -3111,7 +3111,10 @@ function renderPrivacyLinks() {
   privacyShortcuts.innerHTML = "";
   
   const links = state.privacyLinks.split("\n").map(l => l.trim()).filter(Boolean);
-  links.forEach(url => {
+  links.forEach(entry => {
+    const parts = entry.split("|");
+    const url = parts[0].trim();
+    const customLabel = parts[1] ? parts[1].trim() : "";
     let icon = "globe";
     let title = "Link";
     
@@ -3124,12 +3127,14 @@ function renderPrivacyLinks() {
       else if (hostname.includes("twitter") || hostname.includes("x.com")) icon = "message-square";
     } catch {}
 
+    const label = customLabel || title;
+
     const a = document.createElement("a");
     a.href = url;
     a.target = "_blank";
-    a.className = "p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-110 group";
-    a.title = title;
-    a.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 text-white/70 group-hover:text-white"></i>`;
+    a.className = "flex flex-col items-center gap-2 p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all hover:scale-110 group";
+    a.title = label;
+    a.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 text-white/70 group-hover:text-white"></i><span class="text-[10px] font-medium text-white/50 group-hover:text-white/80 transition-colors truncate max-w-[80px]">${label}</span>`;
     privacyShortcuts.appendChild(a);
   });
 }
