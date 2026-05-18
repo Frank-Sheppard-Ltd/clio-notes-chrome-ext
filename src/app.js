@@ -93,6 +93,112 @@ const icons = {
   Sparkles
 };
 
+class MockDirectoryHandle {
+  constructor(name, children = []) {
+    this.kind = "directory";
+    this.name = name;
+    this.children = children;
+  }
+  async *entries() {
+    for (const child of this.children) {
+      yield [child.name, child];
+    }
+  }
+  async queryPermission() {
+    return "granted";
+  }
+  async requestPermission() {
+    return "granted";
+  }
+  async getDirectoryHandle(name, options = {}) {
+    let dir = this.children.find(c => c.kind === "directory" && c.name === name);
+    if (!dir) {
+      if (options.create) {
+        dir = new MockDirectoryHandle(name);
+        this.children.push(dir);
+      } else {
+        throw new Error(`Directory not found: ${name}`);
+      }
+    }
+    return dir;
+  }
+  async getFileHandle(name, options = {}) {
+    let file = this.children.find(c => c.kind === "file" && c.name === name);
+    if (!file) {
+      if (options.create) {
+        file = new MockFileHandle(name);
+        this.children.push(file);
+      } else {
+        throw new Error(`File not found: ${name}`);
+      }
+    }
+    return file;
+  }
+  async removeEntry(name, options = {}) {
+    const idx = this.children.findIndex(c => c.name === name);
+    if (idx !== -1) {
+      this.children.splice(idx, 1);
+    }
+  }
+}
+
+class MockFileHandle {
+  constructor(name) {
+    this.kind = "file";
+    this.name = name;
+  }
+  async queryPermission() {
+    return "granted";
+  }
+  async requestPermission() {
+    return "granted";
+  }
+  async getFile() {
+    return new window.File(["# " + this.name.replace(".md", "") + "\n\nThis is a mock markdown file for visual and interactive testing in Clio Notes. You can edit this file, save it, and toggle preview mode! 🎉"], this.name, {
+      type: "text/markdown",
+      lastModified: Date.now()
+    });
+  }
+  async createWritable() {
+    return {
+      write: async (content) => {
+        console.log(`[Mock Save] Wrote content to ${this.name}:`, content);
+      },
+      close: async () => {
+        console.log(`[Mock Save] Closed writable for ${this.name}`);
+      }
+    };
+  }
+}
+
+function setupMockLibrary() {
+  const mockPersonalHandle = new MockDirectoryHandle("Personal", [
+    new MockDirectoryHandle("Work Notes", [
+      new MockFileHandle("Project Clio.md"),
+      new MockFileHandle("Aesthetics.md")
+    ]),
+    new MockDirectoryHandle("Personal Journal", [
+      new MockFileHandle("Day 1.md"),
+      new MockFileHandle("Reflections.md")
+    ]),
+    new MockFileHandle("Todo.md")
+  ]);
+
+  state.libraryFolders = [
+    {
+      id: "mock-personal",
+      name: "Personal",
+      handle: mockPersonalHandle
+    }
+  ];
+  state.activeLibraryFolderId = "mock-personal";
+  state.rootHandle = mockPersonalHandle;
+  
+  state.expandedFolders = new Set();
+  
+  void refreshTree();
+}
+
 const settingsBtn = document.getElementById("settings-btn");
 const settingsPanel = document.getElementById("settings-panel");
 const closeSettingsBtn = document.getElementById("close-settings-btn");
@@ -122,6 +228,8 @@ const editorDropZone = document.getElementById("editor-drop-zone");
 const preview = document.getElementById("preview");
 const panes = document.querySelector(".panes");
 const previewPane = document.querySelector(".preview-pane");
+const editorToolbar = document.querySelector(".editor-toolbar");
+const noNotesPlaceholder = document.getElementById("no-notes-placeholder");
 const contextMenu = document.getElementById("context-menu");
 const contextMenuItems = Array.from(contextMenu.querySelectorAll(".context-menu-item"));
 const activityExplorerBtn = document.getElementById("activity-explorer-btn");
@@ -212,7 +320,7 @@ const state = {
   privacyPassword: "",
   privacyLinks: "https://github.com\nhttps://gmail.com\nhttps://youtube.com\nhttps://twitter.com",
   privacyTimezone: "auto",
-  privacyActive: true,
+  privacyActive: false,
   lastActivity: Date.now()
 };
 
@@ -234,17 +342,17 @@ function setSidebar(tab) {
   if (tab === "explorer") {
     explorerSidebar.hidden = false;
     searchSidebar.hidden = true;
-    activityExplorerBtn.classList.add("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
-    activityExplorerBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
-    activitySearchBtn.classList.remove("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
-    activitySearchBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    activityExplorerBtn.classList.add("text-[var(--color-accent)]", "bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "border", "border-[var(--color-border)]");
+    activityExplorerBtn.classList.remove("text-zinc-500", "hover:bg-zinc-100", "dark:hover:bg-zinc-800/60");
+    activitySearchBtn.classList.remove("text-[var(--color-accent)]", "bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "border", "border-[var(--color-border)]");
+    activitySearchBtn.classList.add("text-zinc-500", "hover:bg-zinc-100", "dark:hover:bg-zinc-800/60");
   } else {
     explorerSidebar.hidden = true;
     searchSidebar.hidden = false;
-    activitySearchBtn.classList.add("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
-    activitySearchBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
-    activityExplorerBtn.classList.remove("text-indigo-600", "dark:text-indigo-400", "bg-white", "dark:bg-slate-800", "shadow-sm");
-    activityExplorerBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+    activitySearchBtn.classList.add("text-[var(--color-accent)]", "bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "border", "border-[var(--color-border)]");
+    activitySearchBtn.classList.remove("text-zinc-500", "hover:bg-zinc-100", "dark:hover:bg-zinc-800/60");
+    activityExplorerBtn.classList.remove("text-[var(--color-accent)]", "bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "border", "border-[var(--color-border)]");
+    activityExplorerBtn.classList.add("text-zinc-500", "hover:bg-zinc-100", "dark:hover:bg-zinc-800/60");
     globalSearchInput.focus();
   }
 }
@@ -259,7 +367,7 @@ globalSearchInput.addEventListener("input", (e) => {
   clearTimeout(searchDebounceTimer);
   const query = e.target.value.trim().toLowerCase();
   if (!query) {
-    searchResultsContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center gap-3 text-slate-400 p-4"><i data-lucide="search" class="w-10 h-10 opacity-20"></i><p class="text-xs">Search across all your library folders for filenames and content.</p></div>`;
+    searchResultsContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center gap-3 text-zinc-400 p-4"><i data-lucide="search" class="w-10 h-10 opacity-20"></i><p class="text-xs">Search across all your library folders for filenames and content.</p></div>`;
     createIcons({ icons, root: searchResultsContainer });
     return;
   }
@@ -267,7 +375,7 @@ globalSearchInput.addEventListener("input", (e) => {
 });
 
 async function performGlobalSearch(query) {
-  searchResultsContainer.innerHTML = `<div class="flex items-center justify-center p-8"><div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>`;
+  searchResultsContainer.innerHTML = `<div class="flex items-center justify-center p-8"><div class="w-6 h-6 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin"></div></div>`;
   
   const results = [];
   
@@ -316,35 +424,34 @@ async function searchFolderRecursively(handle, path, query, results) {
 
 function renderSearchResults(results, query) {
   if (results.length === 0) {
-    searchResultsContainer.innerHTML = `<div class="p-8 text-center"><p class="text-sm text-slate-500">No results found for "${query}"</p></div>`;
+    searchResultsContainer.innerHTML = `<div class="p-8 text-center"><p class="text-sm text-zinc-500">No results found for "${query}"</p></div>`;
     return;
   }
   
   searchResultsContainer.innerHTML = "";
   results.forEach(result => {
     const item = document.createElement("div");
-    item.className = "p-3 mb-2 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl hover:border-indigo-500/50 transition-all cursor-pointer group";
+    item.className = "p-3.5 mb-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl hover:border-[var(--color-accent)] hover:shadow-refraction transition-all duration-200 cursor-pointer group active:scale-[0.98]";
     
     const highlight = (text, q) => {
       if (!text) return "";
       const regex = new RegExp(`(${q})`, "gi");
-      return text.replace(regex, '<mark class="bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded px-0.5">$1</mark>');
+      return text.replace(regex, '<mark class="bg-[var(--color-accent-soft)] text-[var(--color-accent)] rounded px-0.5 font-medium">$1</mark>');
     };
 
     item.innerHTML = `
       <div class="flex items-start gap-3">
-        <i data-lucide="file-text" class="w-4 h-4 text-slate-400 mt-0.5"></i>
+        <i data-lucide="file-text" class="w-4 h-4 text-zinc-400 dark:text-zinc-500 mt-0.5 transition-colors group-hover:text-[var(--color-accent)]"></i>
         <div class="flex-1 min-w-0">
-          <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">${highlight(result.name, query)}</h3>
-          <p class="text-[10px] text-slate-400 truncate mb-1.5">${result.path}</p>
-          ${result.contentMatch ? `<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 italic">${highlight(result.contentMatch, query)}</p>` : ""}
+          <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate group-hover:text-[var(--color-accent)] transition-colors">${highlight(result.name, query)}</h3>
+          <p class="text-[10px] text-zinc-400 truncate mb-1.5">${result.path}</p>
+          ${result.contentMatch ? `<p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2 italic">${highlight(result.contentMatch, query)}</p>` : ""}
         </div>
       </div>
     `;
     
     item.addEventListener("click", async () => {
       await openFile(result.handle);
-      // Optional: highlight text in editor if it was a content match?
     });
     
     searchResultsContainer.appendChild(item);
@@ -420,6 +527,7 @@ state.explorerVisible = savedExplorerVisible === null ? true : savedExplorerVisi
 updateExplorerVisibility();
 
 createIcons({ icons });
+updateWorkspaceVisibility();
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
@@ -710,9 +818,9 @@ function updateThemeUI() {
   Object.entries(buttons).forEach(([key, btn]) => {
     if (!btn) return;
     if (state.theme === key) {
-      btn.classList.add("bg-white", "dark:bg-slate-700", "shadow-sm", "text-indigo-600", "dark:text-indigo-400");
+      btn.classList.add("bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "text-[var(--color-accent)]", "border", "border-[var(--color-border)]");
     } else {
-      btn.classList.remove("bg-white", "dark:bg-slate-700", "shadow-sm", "text-indigo-600", "dark:text-indigo-400");
+      btn.classList.remove("bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "text-[var(--color-accent)]", "border", "border-[var(--color-border)]");
     }
   });
 }
@@ -730,6 +838,12 @@ function initializeTheme() {
 
 async function initializeLibrary() {
   try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("mock") === "true") {
+      setupMockLibrary();
+      return;
+    }
+
     const rawExpanded = localStorage.getItem(EXPANDED_FOLDERS_KEY);
     if (rawExpanded) {
       try {
@@ -1036,11 +1150,11 @@ function updateExplorerVisibility() {
   }
   if (activityExplorerBtn) {
     if (state.explorerVisible) {
-      activityExplorerBtn.classList.add("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
-      activityExplorerBtn.classList.remove("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+      activityExplorerBtn.classList.add("text-[var(--color-accent)]", "bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "border", "border-[var(--color-border)]");
+      activityExplorerBtn.classList.remove("text-zinc-500", "hover:bg-zinc-100", "dark:hover:bg-zinc-800/60");
     } else {
-      activityExplorerBtn.classList.remove("bg-white", "dark:bg-slate-800", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
-      activityExplorerBtn.classList.add("text-slate-500", "hover:bg-slate-200", "dark:hover:bg-slate-800");
+      activityExplorerBtn.classList.remove("text-[var(--color-accent)]", "bg-[var(--color-surface)]", "dark:bg-zinc-800", "shadow-sm", "border", "border-[var(--color-border)]");
+      activityExplorerBtn.classList.add("text-zinc-500", "hover:bg-zinc-100", "dark:hover:bg-zinc-800/60");
     }
   }
 }
@@ -1104,9 +1218,11 @@ async function buildFolderTree(dirHandle, pathPrefix, libraryId) {
     summary.dataset.parentPath = pathPrefix;
     summary.dataset.libraryId = libraryId;
     
-    summary.addEventListener("click", () => {
+    summary.addEventListener("click", (e) => {
+      e.preventDefault();
       void switchActiveLibrary(libraryId);
       setExplorerSelection("folder", folderPath, pathPrefix);
+      details.open = !details.open;
     });
 
     attachDragSource(summary, {
@@ -1160,7 +1276,7 @@ async function buildFolderTree(dirHandle, pathPrefix, libraryId) {
 
     const fileIcon = document.createElement("i");
     fileIcon.setAttribute("data-lucide", "file-text");
-    fileIcon.className = "item-icon text-indigo-400 w-4 h-4";
+    fileIcon.className = "item-icon w-4 h-4";
 
     const fileNameText = document.createElement("span");
     fileNameText.className = "item-name";
@@ -1231,9 +1347,11 @@ async function refreshTree() {
     summary.dataset.entryPath = entry.name;
     summary.dataset.libraryId = entry.id;
     
-    summary.addEventListener("click", () => {
+    summary.addEventListener("click", (e) => {
+      e.preventDefault();
       void switchActiveLibrary(entry.id);
       setExplorerSelection("root", entry.name, entry.name);
+      details.open = !details.open;
     });
 
     const summaryRow = document.createElement("span");
@@ -1244,7 +1362,7 @@ async function refreshTree() {
 
     const libIcon = document.createElement("i");
     libIcon.setAttribute("data-lucide", "library");
-    libIcon.className = "item-icon text-indigo-500 w-4 h-4";
+    libIcon.className = "item-icon w-4 h-4";
 
     const libNameText = document.createElement("span");
     libNameText.className = "item-name font-bold";
@@ -1266,7 +1384,7 @@ async function refreshTree() {
         reconnectContainer.className = "p-2 pl-6";
         
         const reconnectBtn = document.createElement("button");
-        reconnectBtn.className = "text-xs text-indigo-600 hover:underline flex items-center gap-1";
+        reconnectBtn.className = "text-xs text-[var(--color-accent)] hover:underline flex items-center gap-1 active:scale-95 transition-all duration-200";
         reconnectBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i> Reconnect';
         reconnectBtn.onclick = (e) => {
           e.stopPropagation();
@@ -1428,11 +1546,50 @@ async function closeTab(tabId, event) {
   saveTabState();
 }
 
+function updateWorkspaceVisibility() {
+  const hasTabs = state.tabs.length > 0;
+  
+  if (hasTabs) {
+    if (editorToolbar) {
+      editorToolbar.style.removeProperty("display");
+      editorToolbar.hidden = false;
+    }
+    if (panes) {
+      panes.style.removeProperty("display");
+      panes.hidden = false;
+    }
+    if (noNotesPlaceholder) {
+      noNotesPlaceholder.style.setProperty("display", "none", "important");
+      noNotesPlaceholder.hidden = true;
+    }
+    if (tabBar) {
+      tabBar.hidden = false;
+    }
+  } else {
+    if (editorToolbar) {
+      editorToolbar.style.setProperty("display", "none", "important");
+      editorToolbar.hidden = true;
+    }
+    if (panes) {
+      panes.style.setProperty("display", "none", "important");
+      panes.hidden = true;
+    }
+    if (noNotesPlaceholder) {
+      noNotesPlaceholder.style.removeProperty("display");
+      noNotesPlaceholder.hidden = false;
+    }
+    if (tabBar) {
+      tabBar.hidden = true;
+    }
+  }
+}
+
 function renderTabs() {
   if (!tabBar) return;
 
   if (state.tabs.length === 0) {
     tabBar.hidden = true;
+    updateWorkspaceVisibility();
     return;
   }
 
@@ -1468,6 +1625,7 @@ function renderTabs() {
   });
 
   createIcons({ icons, root: tabBar });
+  updateWorkspaceVisibility();
 }
 
 function saveTabState() {
@@ -3022,7 +3180,6 @@ async function initializePrivacyScreen() {
 
   // Always open with lock screen turned on if enabled
   if (state.privacyEnabled) {
-    state.privacyActive = false;
     showPrivacyScreen();
   } else {
     // Instantly hide without animation

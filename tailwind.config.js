@@ -8,29 +8,43 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#0f172a',
-        surface: '#1e293b',
-        'surface-soft': '#334155',
-        'surface-strong': '#475569',
-        border: '#334155',
-        line: '#475569',
-        accent: '#6366f1',
+        bg: '#fafafa', // Zinc 50
+        surface: '#ffffff',
+        'surface-soft': '#f4f4f5', // Zinc 100
+        'surface-strong': '#e4e4e7', // Zinc 200
+        border: '#e4e4e7', // Zinc 200
+        line: '#d4d4d8', // Zinc 300
+        accent: '#2563eb', // Electric Blue (Royal/Blue)
         'accent-ink': '#ffffff',
-        muted: '#94a3b8',
-        text: '#f8fafc',
-        success: '#10b981',
-        danger: '#ef4444',
-        warning: '#f59e0b',
+        muted: '#71717a', // Zinc 500
+        text: '#09090b', // Zinc 950
+        success: '#10b981', // Emerald
+        danger: '#f43f5e', // Rose
+        warning: '#f59e0b', // Amber
+        // Dark Mode Override Variables (we will also bind these to custom CSS variables)
+        dark: {
+          bg: '#09090b', // Zinc 950
+          surface: '#18181b', // Zinc 900
+          'surface-soft': '#27272a', // Zinc 800
+          'surface-strong': '#3f3f46', // Zinc 700
+          border: '#27272a', // Zinc 800
+          line: '#3f3f46', // Zinc 700
+          accent: '#3b82f6', // Bright Electric Blue
+          muted: '#a1a1aa', // Zinc 400
+          text: '#fafafa', // Zinc 50
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'Outfit', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+        sans: ['Outfit', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'sm': '0 8px 22px rgba(17, 24, 39, 0.08)',
-        'md': '0 18px 45px rgba(17, 24, 39, 0.12)',
-        'dark-sm': '0 10px 28px rgba(0, 0, 0, 0.35)',
-        'dark-md': '0 20px 54px rgba(0, 0, 0, 0.5)',
+        'sm': '0 8px 30px rgba(9, 9, 11, 0.04)',
+        'md': '0 20px 50px rgba(9, 9, 11, 0.08)',
+        'dark-sm': '0 10px 30px rgba(0, 0, 0, 0.5)',
+        'dark-md': '0 25px 60px rgba(0, 0, 0, 0.65)',
+        'refraction': 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+        'refraction-light': 'inset 0 1px 0 rgba(255, 255, 255, 0.5)',
       }
     },
   },
