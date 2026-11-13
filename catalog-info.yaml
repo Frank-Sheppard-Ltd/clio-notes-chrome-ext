@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: clio-notes-chrome-ext
+  description: "Chrome extension with a local-first Markdown editor and file explorer."
+  annotations:
+    github.com/project-slug: Frank-Sheppard-Ltd/clio-notes-chrome-ext
+    rag/visibility: internal
+  tags:
+    - javascript
+spec:
+  type: website
+  lifecycle: experimental
+  owner: group:default/frank-sheppard-ltd
